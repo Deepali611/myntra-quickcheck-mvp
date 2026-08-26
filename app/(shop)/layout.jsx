@@ -3,6 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '../../state/store.jsx';
+import { 
+  SearchIcon, 
+  MicIcon, 
+  CameraIcon, 
+  BellIcon, 
+  HeartIcon, 
+  BagIcon, 
+  HomeIcon, 
+  FwdIcon, 
+  MnowIcon, 
+  LuxeIcon 
+} from '../../components/Icons.jsx';
 
 export default function ShopLayout({ children }) {
   const pathname = usePathname();
@@ -30,24 +42,24 @@ export default function ShopLayout({ children }) {
           </Link>
 
           <Link href="/search" className="search-input-box" style={{ textDecoration: 'none' }}>
-            <span style={{ fontSize: '13px', color: '#535766' }}>🔍</span>
+            <SearchIcon size={15} color="#535766" />
             <input 
               type="text" 
               placeholder="Search for products, brands and more" 
               readOnly
               style={{ cursor: 'pointer' }}
             />
-            <span style={{ fontSize: '13px' }}>🎙️</span>
-            <span style={{ fontSize: '13px' }}>📷</span>
+            <MicIcon size={16} color="#535766" />
+            <CameraIcon size={16} color="#535766" />
           </Link>
 
           <div className="header-icon-actions">
             <Link href="/wishlist" className="icon-btn" title="Wishlist">
-              ❤️
+              <HeartIcon size={21} color="#282c3f" />
               {wishlistCount > 0 && <span className="badge-count">{wishlistCount}</span>}
             </Link>
             <Link href="/bag" className="icon-btn" title="Shopping Bag">
-              🛍️
+              <BagIcon size={20} color="#282c3f" />
               {bagCount > 0 && <span className="badge-count">{bagCount}</span>}
             </Link>
           </div>
@@ -90,26 +102,26 @@ export default function ShopLayout({ children }) {
       {/* Shared Bottom Tab Bar (Fixed bottom) */}
       <nav className="bottom-tab-bar">
         <Link href="/" className={`tab-link ${pathname === '/' ? 'active' : ''}`}>
-          <span className="tab-icon">🏠</span>
+          <span className="tab-icon"><HomeIcon size={20} /></span>
           <span>Home</span>
         </Link>
-        <Link href="/c/women" className={`tab-link ${pathname.includes('/c/women') ? 'active' : ''}`}>
-          <span className="tab-icon">⚡</span>
+        <Link href="#" className="tab-link">
+          <span className="tab-icon"><FwdIcon size={20} /></span>
           <span>fwd</span>
           <span className="tab-subtext">Under ₹999</span>
         </Link>
-        <Link href="/c/men" className={`tab-link ${pathname.includes('/c/men') ? 'active' : ''}`}>
-          <span className="tab-icon">🚀</span>
+        <Link href="#" className="tab-link">
+          <span className="tab-icon"><MnowIcon size={20} /></span>
           <span>mnow</span>
           <span className="tab-subtext">From 30 min</span>
         </Link>
-        <Link href="/c/beauty" className={`tab-link ${pathname.includes('/c/beauty') ? 'active' : ''}`}>
-          <span className="tab-icon">✨</span>
+        <Link href="#" className="tab-link">
+          <span className="tab-icon"><LuxeIcon size={20} /></span>
           <span>LUXE</span>
           <span className="tab-subtext">Luxury</span>
         </Link>
         <Link href="/bag" className={`tab-link ${pathname === '/bag' ? 'active' : ''}`}>
-          <span className="tab-icon">🛍️</span>
+          <span className="tab-icon"><BagIcon size={20} /></span>
           <span>Bag</span>
           {bagCount > 0 && <span className="badge-count" style={{ top: '-2px', right: '4px' }}>{bagCount}</span>}
         </Link>
