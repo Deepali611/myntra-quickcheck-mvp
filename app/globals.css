@@ -142,7 +142,7 @@ body {
 /* Phone Screen Internal Display Area (Constrained flex column) */
 .phone-screen-display {
   flex: 1;
-  min-height: 0; /* CRITICAL: Allows flex child to shrink below content size */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -150,23 +150,22 @@ body {
   position: relative;
 }
 
-/* Main Internal Scrollable Body Region */
+/* Main Internal Scrollable Body Region (Zero visible scrollbar) */
 .scrollable-content {
   flex: 1;
-  min-height: 0; /* CRITICAL: Enables scrolling in flex column layout */
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   background-color: var(--bg-color);
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
 }
 
 .scrollable-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollable-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
+  width: 0;
+  height: 0;
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Home Indicator Bar */
