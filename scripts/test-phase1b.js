@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json');
+const PRODUCTS_FILE = path.join(process.cwd(), 'data', 'products.json');
 const products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
 
 console.log('=== Phase 1b Verification Suite ===\n');
@@ -28,7 +28,7 @@ if (deptFailures === 0) {
   process.exit(1);
 }
 
-// 2. Discount Reconciliation Math
+// 2. Discount Math Reconciliation
 console.log('--- 2. Discount Math Reconciliation ---');
 let mathErrors = 0;
 products.forEach(p => {
@@ -78,7 +78,7 @@ if (sizingErrors === 0) {
   process.exit(1);
 }
 
-// 4. Spot-check Image/Text Alignment across all 7 departments
+// 4. Spot-check Image-Text Alignment across all 7 departments
 console.log('--- 4. Image-Text Alignment Spot-Check ---');
 const sampleIds = ['w1', 'w35', 'm1', 'm30', 'k1', 'k25', 'f1', 'f25', 'b1', 'b20', 'a1', 'a20', 'h1', 'h20'];
 sampleIds.forEach(id => {
@@ -87,7 +87,7 @@ sampleIds.forEach(id => {
     console.error(`Sample product ${id} not found!`);
     process.exit(1);
   }
-  const imgPath = path.join(__dirname, '..', 'public', p.image);
+  const imgPath = path.join(process.cwd(), 'public', p.image);
   const exists = fs.existsSync(imgPath);
   console.log(`[${p.id}] ${p.department.padEnd(10)} | ${p.name.padEnd(30)} | Image: ${p.image} (${exists ? 'EXISTS' : 'MISSING'})`);
   if (!exists) {
