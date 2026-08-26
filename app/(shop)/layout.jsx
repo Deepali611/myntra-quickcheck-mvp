@@ -12,28 +12,33 @@ export default function ShopLayout({ children }) {
   const bagCount = state?.bag ? state.bag.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
       {/* Shared Header Chrome */}
       <header className="shop-header">
         {/* Location Bar */}
         <div className="location-bar">
-          <span style={{ color: '#ff3f6c', fontSize: '13px' }}>📍</span>
+          <span className="loc-icon">📍</span>
           <span>Deliver to</span>
           <span className="loc-text">Anupam Nagar Road - Gauripada, Thane, Kalyan, 421301...</span>
-          <span style={{ fontSize: '10px' }}>▼</span>
+          <span className="chevron">▼</span>
         </div>
 
-        {/* Top Search & Actions Row */}
+        {/* Primary Search Header Row */}
         <div className="search-header-row">
           <Link href="/" className="brand-logo-btn" title="Myntra Home">
             M
           </Link>
-          
+
           <Link href="/search" className="search-input-box" style={{ textDecoration: 'none' }}>
-            <span style={{ fontSize: '14px' }}>🔍</span>
-            <span style={{ flex: 1, color: '#94969f' }}>Search for products, brands and more</span>
-            <span style={{ fontSize: '14px' }}>🎙️</span>
-            <span style={{ fontSize: '14px' }}>📷</span>
+            <span style={{ fontSize: '13px', color: '#535766' }}>🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search for products, brands and more" 
+              readOnly
+              style={{ cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '13px' }}>🎙️</span>
+            <span style={{ fontSize: '13px' }}>📷</span>
           </Link>
 
           <div className="header-icon-actions">
@@ -48,7 +53,7 @@ export default function ShopLayout({ children }) {
           </div>
         </div>
 
-        {/* Sub-nav Category Rail */}
+        {/* Sub-nav Category Tabs */}
         <nav className="category-tab-rail">
           <Link href="/" className={`category-tab-item ${pathname === '/' ? 'active' : ''}`}>
             ALL
@@ -77,7 +82,7 @@ export default function ShopLayout({ children }) {
         </nav>
       </header>
 
-      {/* Main Content Body */}
+      {/* Main Content Area */}
       <main style={{ flex: 1, backgroundColor: '#f5f5f6' }}>
         {children}
       </main>
@@ -91,14 +96,17 @@ export default function ShopLayout({ children }) {
         <Link href="/c/women" className={`tab-link ${pathname.includes('/c/women') ? 'active' : ''}`}>
           <span className="tab-icon">⚡</span>
           <span>fwd</span>
+          <span className="tab-subtext">Under ₹999</span>
         </Link>
         <Link href="/c/men" className={`tab-link ${pathname.includes('/c/men') ? 'active' : ''}`}>
           <span className="tab-icon">🚀</span>
           <span>mnow</span>
+          <span className="tab-subtext">From 30 min</span>
         </Link>
         <Link href="/c/beauty" className={`tab-link ${pathname.includes('/c/beauty') ? 'active' : ''}`}>
           <span className="tab-icon">✨</span>
           <span>LUXE</span>
+          <span className="tab-subtext">Luxury</span>
         </Link>
         <Link href="/bag" className={`tab-link ${pathname === '/bag' ? 'active' : ''}`}>
           <span className="tab-icon">🛍️</span>
