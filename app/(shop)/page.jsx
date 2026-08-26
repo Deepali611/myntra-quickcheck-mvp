@@ -7,19 +7,19 @@ const DEPARTMENTS = [
   { name: 'Footwear', path: '/c/footwear', img: '/products/f1.jpg' },
   { name: 'Accessories', path: '/c/accessories', img: '/products/a1.jpg' },
   { name: 'Men', path: '/c/men', img: '/products/m1.jpg' },
-  { name: 'Kids', path: '/c/kids', img: '/products/k1.jpg' }
+  { name: 'Kids', path: '/c/kids', img: '/products/k4.jpg' }
 ];
 
 const SUBCATEGORIES = [
   { label: 'Kurta Sets', path: '/c/women/kurta_set', img: '/products/w1.jpg' },
   { label: 'Shirts', path: '/c/men/shirt', img: '/products/m1.jpg' },
-  { label: 'Jeans', path: '/c/women/jeans', img: '/products/w15.jpg' },
-  { label: 'T-Shirts', path: '/c/men/tshirt', img: '/products/m5.jpg' },
-  { label: 'Footwear', path: '/c/footwear', img: '/products/f1.jpg' },
+  { label: 'Jeans', path: '/c/men/jeans', img: '/products/m4.jpg' },
+  { label: 'T-Shirts', path: '/c/men/tshirt', img: '/products/m3.jpg' },
+  { label: 'Watches', path: '/c/accessories', img: '/products/a5.jpg' },
+  { label: 'Footwear', path: '/c/footwear', img: '/products/f2.jpg' },
   { label: 'Kids Wear', path: '/c/kids', img: '/products/k1.jpg' },
-  { label: 'Lipsticks', path: '/c/beauty', img: '/products/b1.jpg' },
+  { label: 'Lipstick', path: '/c/beauty', img: '/products/b3.jpg' },
   { label: 'Bedsheets', path: '/c/homeliving', img: '/products/h1.jpg' },
-  { label: 'Handbags', path: '/c/accessories', img: '/products/a1.jpg' },
   { label: 'Dresses', path: '/c/women/dress', img: '/products/w3.jpg' }
 ];
 
@@ -33,7 +33,7 @@ const BRAND_DEALS = [
 export default function HomePage() {
   return (
     <div style={{ paddingBottom: '24px' }}>
-      {/* Department Circle Rail with Soft Muted Photographic Thumbnails */}
+      {/* Department Circle Rail with Verified Real Product Photography */}
       <div className="dept-circle-rail">
         {DEPARTMENTS.map((dept, idx) => (
           <Link href={dept.path} key={idx} className="dept-circle-tile">
@@ -56,7 +56,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Subcategory Grid Section */}
+      {/* Subcategory Grid Section with Verified Real Product Photography */}
       <div className="subcategory-grid-section">
         <div className="section-title">Shop By Category</div>
         <div className="subcategory-grid">

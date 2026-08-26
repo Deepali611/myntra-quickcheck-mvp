@@ -350,7 +350,7 @@ body {
   border-radius: 2px 2px 0 0;
 }
 
-/* Circle Department Tiles Rail (Soft Muted Photographic Circles) */
+/* Circle Department Tiles Rail (Real Licensed Catalogue Photography) */
 .dept-circle-rail {
   display: flex;
   overflow-x: auto;
@@ -379,10 +379,10 @@ body {
   height: 56px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #fff0f3;
+  background-color: #f8f8f9;
   padding: 2px;
   border: 1.5px solid #ffe3e8;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   margin-bottom: 6px;
 }
 
@@ -391,7 +391,6 @@ body {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  filter: brightness(1.02) contrast(0.96) saturate(0.9);
 }
 
 .dept-circle-label {
@@ -429,7 +428,7 @@ body {
   color: var(--text-primary);
 }
 
-/* Subcategory Circle Grid (Soft Muted Photographic Tiles) */
+/* Subcategory Circle Grid (Real Licensed Catalogue Photography) */
 .subcategory-grid-section {
   background-color: #ffffff;
   padding: 16px 12px;
@@ -463,8 +462,8 @@ body {
   aspect-ratio: 1;
   border-radius: 16px;
   overflow: hidden;
-  background-color: #fff5f7;
-  border: 1px solid #fce8ec;
+  background-color: #f8f8f9;
+  border: 1px solid #eaeaec;
   margin-bottom: 6px;
 }
 
@@ -472,7 +471,6 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(1.02) contrast(0.96) saturate(0.9);
 }
 
 .subcategory-label {
