@@ -49,6 +49,7 @@ body {
 .phone-frame-wrapper {
   width: 414px;
   height: 870px;
+  max-height: 94vh;
   background-color: #121316;
   border-radius: 46px;
   border: 10px solid #28292e;
@@ -106,6 +107,7 @@ body {
   font-weight: 700;
   color: var(--text-primary);
   user-select: none;
+  flex-shrink: 0;
 }
 
 .status-left {
@@ -137,9 +139,10 @@ body {
   border-radius: 1px;
 }
 
-/* Phone Screen Internal Display Area */
+/* Phone Screen Internal Display Area (Constrained flex column) */
 .phone-screen-display {
   flex: 1;
+  min-height: 0; /* CRITICAL: Allows flex child to shrink below content size */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -150,6 +153,7 @@ body {
 /* Main Internal Scrollable Body Region */
 .scrollable-content {
   flex: 1;
+  min-height: 0; /* CRITICAL: Enables scrolling in flex column layout */
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -173,6 +177,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 150;
+  flex-shrink: 0;
 }
 
 .home-pill {
@@ -215,8 +220,8 @@ body {
 
 /* Primary Header Row */
 .shop-header {
-  position: sticky;
-  top: 0;
+  position: relative;
+  flex-shrink: 0;
   z-index: 100;
   background-color: var(--surface-color);
   border-bottom: 1px solid var(--border-color);
@@ -346,7 +351,7 @@ body {
   border-radius: 2px 2px 0 0;
 }
 
-/* Circle Department Tiles Rail (Dedicated Icons matching label) */
+/* Circle Department Tiles Rail */
 .dept-circle-rail {
   display: flex;
   overflow-x: auto;
@@ -470,8 +475,8 @@ body {
 
 /* Bottom Tab Navigation Bar */
 .bottom-tab-bar {
-  position: sticky;
-  bottom: 0;
+  position: relative;
+  flex-shrink: 0;
   z-index: 100;
   background-color: #ffffff;
   border-top: 1px solid var(--border-color);

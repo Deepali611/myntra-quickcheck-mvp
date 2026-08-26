@@ -12,7 +12,7 @@ export default function ShopLayout({ children }) {
   const bagCount = state?.bag ? state.bag.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden' }}>
       {/* Shared Header Chrome (Fixed top) */}
       <header className="shop-header">
         {/* Location Bar */}
