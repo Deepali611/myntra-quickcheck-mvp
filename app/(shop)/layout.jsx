@@ -12,8 +12,8 @@ export default function ShopLayout({ children }) {
   const bagCount = state?.bag ? state.bag.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
-      {/* Shared Header Chrome */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* Shared Header Chrome (Fixed top) */}
       <header className="shop-header">
         {/* Location Bar */}
         <div className="location-bar">
@@ -82,12 +82,12 @@ export default function ShopLayout({ children }) {
         </nav>
       </header>
 
-      {/* Main Content Area */}
-      <main style={{ flex: 1, backgroundColor: '#f5f5f6' }}>
+      {/* Internal Scrollable Content Body Region */}
+      <main className="scrollable-content">
         {children}
       </main>
 
-      {/* Shared Bottom Tab Bar */}
+      {/* Shared Bottom Tab Bar (Fixed bottom) */}
       <nav className="bottom-tab-bar">
         <Link href="/" className={`tab-link ${pathname === '/' ? 'active' : ''}`}>
           <span className="tab-icon">🏠</span>

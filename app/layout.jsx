@@ -1,5 +1,6 @@
 import './globals.css';
 import { AppProvider } from '../state/store.jsx';
+import PhoneFrame from '../components/PhoneFrame.jsx';
 
 export const metadata = {
   title: 'Myntra - Quick Check MVP',
@@ -18,9 +19,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AppProvider>
-          <div className="app-wrapper">
+          <PhoneFrame>
             {children}
-          </div>
+          </PhoneFrame>
         </AppProvider>
       </body>
     </html>
