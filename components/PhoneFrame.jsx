@@ -21,12 +21,12 @@ export default function PhoneFrame({ children }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Scale-to-fit browser window resize listener
+  // Responsive Scale-to-fit calculation
   useEffect(() => {
     const handleResize = () => {
-      const targetHeight = 880; // Ideal phone frame height
-      const targetWidth = 414;  // Ideal phone frame width
-      const margin = 20;
+      const targetHeight = 870; // True phone height
+      const targetWidth = 414;  // True phone width
+      const margin = 16;
 
       const availHeight = window.innerHeight - margin;
       const availWidth = window.innerWidth - margin;
@@ -35,7 +35,7 @@ export default function PhoneFrame({ children }) {
       const scaleX = availWidth / targetWidth;
       const fitScale = Math.min(1, scaleY, scaleX);
 
-      setScale(Math.max(0.6, fitScale));
+      setScale(Math.max(0.65, fitScale));
     };
 
     handleResize();
