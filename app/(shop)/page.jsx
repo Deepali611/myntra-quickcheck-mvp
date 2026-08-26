@@ -1,26 +1,26 @@
 import Link from 'next/link';
 
 const DEPARTMENTS = [
-  { name: 'Fashion', path: '/c/women', icon: '👗' },
-  { name: 'Beauty', path: '/c/beauty', icon: '💄' },
-  { name: 'Home & Living', path: '/c/homeliving', icon: '🛋️' },
-  { name: 'Footwear', path: '/c/footwear', icon: '👠' },
-  { name: 'Accessories', path: '/c/accessories', icon: '👜' },
-  { name: 'Men', path: '/c/men', icon: '👔' },
-  { name: 'Kids', path: '/c/kids', icon: '🧸' }
+  { name: 'Fashion', path: '/c/women', img: '/products/w1.jpg' },
+  { name: 'Beauty', path: '/c/beauty', img: '/products/b1.jpg' },
+  { name: 'Home & Living', path: '/c/homeliving', img: '/products/h1.jpg' },
+  { name: 'Footwear', path: '/c/footwear', img: '/products/f1.jpg' },
+  { name: 'Accessories', path: '/c/accessories', img: '/products/a1.jpg' },
+  { name: 'Men', path: '/c/men', img: '/products/m1.jpg' },
+  { name: 'Kids', path: '/c/kids', img: '/products/k1.jpg' }
 ];
 
 const SUBCATEGORIES = [
-  { label: 'Kurta Sets', path: '/c/women/kurta_set', icon: '🥻' },
-  { label: 'Shirts', path: '/c/men/shirt', icon: '👔' },
-  { label: 'Jeans', path: '/c/women/jeans', icon: '👖' },
-  { label: 'T-Shirts', path: '/c/men/tshirt', icon: '👕' },
-  { label: 'Footwear', path: '/c/footwear', icon: '👟' },
-  { label: 'Kids Wear', path: '/c/kids', icon: '👶' },
-  { label: 'Lipsticks', path: '/c/beauty', icon: '💄' },
-  { label: 'Bedsheets', path: '/c/homeliving', icon: '🛏️' },
-  { label: 'Handbags', path: '/c/accessories', icon: '👜' },
-  { label: 'Dresses', path: '/c/women/dress', icon: '👗' }
+  { label: 'Kurta Sets', path: '/c/women/kurta_set', img: '/products/w1.jpg' },
+  { label: 'Shirts', path: '/c/men/shirt', img: '/products/m1.jpg' },
+  { label: 'Jeans', path: '/c/women/jeans', img: '/products/w15.jpg' },
+  { label: 'T-Shirts', path: '/c/men/tshirt', img: '/products/m5.jpg' },
+  { label: 'Footwear', path: '/c/footwear', img: '/products/f1.jpg' },
+  { label: 'Kids Wear', path: '/c/kids', img: '/products/k1.jpg' },
+  { label: 'Lipsticks', path: '/c/beauty', img: '/products/b1.jpg' },
+  { label: 'Bedsheets', path: '/c/homeliving', img: '/products/h1.jpg' },
+  { label: 'Handbags', path: '/c/accessories', img: '/products/a1.jpg' },
+  { label: 'Dresses', path: '/c/women/dress', img: '/products/w3.jpg' }
 ];
 
 const BRAND_DEALS = [
@@ -33,12 +33,12 @@ const BRAND_DEALS = [
 export default function HomePage() {
   return (
     <div style={{ paddingBottom: '24px' }}>
-      {/* Department Circle Rail with Dedicated Icons */}
+      {/* Department Circle Rail with Soft Muted Photographic Thumbnails */}
       <div className="dept-circle-rail">
         {DEPARTMENTS.map((dept, idx) => (
           <Link href={dept.path} key={idx} className="dept-circle-tile">
-            <div className="dept-icon-circle">
-              {dept.icon}
+            <div className="dept-circle-img-wrap">
+              <img src={dept.img} alt={dept.name} />
             </div>
             <span className="dept-circle-label">{dept.name}</span>
           </Link>
@@ -62,8 +62,8 @@ export default function HomePage() {
         <div className="subcategory-grid">
           {SUBCATEGORIES.map((cat, idx) => (
             <Link href={cat.path} key={idx} className="subcategory-tile">
-              <div className="subcategory-icon-wrap">
-                {cat.icon}
+              <div className="subcategory-img-wrap">
+                <img src={cat.img} alt={cat.label} />
               </div>
               <span className="subcategory-label">{cat.label}</span>
             </Link>
@@ -95,17 +95,6 @@ export default function HomePage() {
               <div style={{ fontSize: '12px', color: '#ff3f6c', fontWeight: 'bold', marginTop: '4px' }}>{deal.title}</div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Value Add Feature Banner */}
-      <div style={{ margin: '12px', padding: '14px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #eaeaec', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '24px' }}>⚡</span>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#282c3f' }}>Express 2-Day Delivery</div>
-            <div style={{ fontSize: '10px', color: '#535766' }}>Available on 10,000+ top wishlist picks</div>
-          </div>
         </div>
       </div>
     </div>
