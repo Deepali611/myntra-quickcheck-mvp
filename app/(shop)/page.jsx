@@ -3,26 +3,26 @@ import { getAllProducts } from '../../lib/catalog.js';
 import ProductCard from '../../components/ProductCard.jsx';
 
 const DEPARTMENTS = [
-  { name: 'Fashion', path: '/c/women', img: '/products/w1.jpg' },
-  { name: 'Beauty', path: '/c/beauty', img: '/products/b1.jpg' },
-  { name: 'Home & Living', path: '/c/homeliving', img: '/products/h1.jpg' },
-  { name: 'Footwear', path: '/c/footwear', img: '/products/f1.jpg' },
-  { name: 'Accessories', path: '/c/accessories', img: '/products/a1.jpg' },
-  { name: 'Men', path: '/c/men', img: '/products/m1.jpg' },
-  { name: 'Kids', path: '/c/kids', img: '/products/k4.jpg' }
+  { name: 'Fashion', path: '/c/women', deptKey: 'Women' },
+  { name: 'Beauty', path: '/c/beauty', deptKey: 'Beauty' },
+  { name: 'Home & Living', path: '/c/homeliving', deptKey: 'HomeLiving' },
+  { name: 'Footwear', path: '/c/footwear', deptKey: 'Footwear' },
+  { name: 'Accessories', path: '/c/accessories', deptKey: 'Accessories' },
+  { name: 'Men', path: '/c/men', deptKey: 'Men' },
+  { name: 'Kids', path: '/c/kids', deptKey: 'Kids' }
 ];
 
 const SUBCATEGORIES = [
-  { label: 'Kurta Sets', path: '/c/women/kurta_set', img: '/products/w1.jpg' },
-  { label: 'Shirts', path: '/c/men/shirt', img: '/products/m1.jpg' },
-  { label: 'Jeans', path: '/c/men/jeans', img: '/products/m4.jpg' },
-  { label: 'T-Shirts', path: '/c/men/tshirt', img: '/products/m3.jpg' },
-  { label: 'Watches', path: '/c/accessories', img: '/products/a5.jpg' },
-  { label: 'Footwear', path: '/c/footwear', img: '/products/f2.jpg' },
-  { label: 'Kids Wear', path: '/c/kids', img: '/products/k1.jpg' },
-  { label: 'Lipstick', path: '/c/beauty', img: '/products/b3.jpg' },
-  { label: 'Bedsheets', path: '/c/homeliving', img: '/products/h1.jpg' },
-  { label: 'Dresses', path: '/c/women/dress', img: '/products/w3.jpg' }
+  { label: 'Kurta Sets', path: '/c/women/kurta_set', subcatKey: 'kurta set' },
+  { label: 'Shirts', path: '/c/men/shirt', subcatKey: 'casual shirt' },
+  { label: 'Jeans', path: '/c/men/jeans', subcatKey: 'jeans' },
+  { label: 'T-Shirts', path: '/c/men/tshirt', subcatKey: 'tshirt' },
+  { label: 'Watches', path: '/c/accessories', subcatKey: 'watch' },
+  { label: 'Footwear', path: '/c/footwear', subcatKey: 'heels' },
+  { label: 'Kids Wear', path: '/c/kids', subcatKey: 'boys tshirt' },
+  { label: 'Lipstick', path: '/c/beauty', subcatKey: 'lipstick' },
+  { label: 'Bedsheets', path: '/c/homeliving', subcatKey: 'bedsheet' },
+  { label: 'Dresses', path: '/c/women/dress', subcatKey: 'dress' }
 ];
 
 const BRAND_DEALS = [
@@ -34,16 +34,31 @@ const BRAND_DEALS = [
 
 export default function HomePage() {
   const allProducts = getAllProducts();
+
+  const getDeptImage = (deptKey) => {
+    const p = allProducts.find(prod => prod.department === deptKey);
+    return p ? p.image : '/products/w1.jpg';
+  };
+
+  const getSubcatImage = (subcatKey) => {
+    const p = allProducts.find(prod => 
+      (prod.subcategory || '').toLowerCase().includes(subcatKey) || 
+      (prod.category || '').toLowerCase().includes(subcatKey) ||
+      (prod.garmentType || '').toLowerCase().includes(subcatKey)
+    );
+    return p ? p.image : '/products/w1.jpg';
+  };
+
   const featuredProducts = allProducts.slice(0, 8);
 
   return (
     <div style={{ paddingBottom: '24px' }}>
-      {/* Department Circle Rail with Verified Real Product Photography */}
+      {/* Department Circle Rail with Live Scraped Myntra Product Images */}
       <div className="dept-circle-rail">
         {DEPARTMENTS.map((dept, idx) => (
           <Link href={dept.path} key={idx} className="dept-circle-tile">
             <div className="dept-circle-img-wrap">
-              <img src={dept.img} alt={dept.name} />
+              <img src={getDeptImage(dept.deptKey)} alt={dept.name} />
             </div>
             <span className="dept-circle-label">{dept.name}</span>
           </Link>
@@ -61,14 +76,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Subcategory Grid Section with Verified Real Product Photography */}
+      {/* Subcategory Grid Section with Live Scraped Myntra Product Images */}
       <div className="subcategory-grid-section">
         <div className="section-title">Shop By Category</div>
         <div className="subcategory-grid">
           {SUBCATEGORIES.map((cat, idx) => (
             <Link href={cat.path} key={idx} className="subcategory-tile">
               <div className="subcategory-img-wrap">
-                <img src={cat.img} alt={cat.label} />
+                <img src={getSubcatImage(cat.subcatKey)} alt={cat.label} />
               </div>
               <span className="subcategory-label">{cat.label}</span>
             </Link>
