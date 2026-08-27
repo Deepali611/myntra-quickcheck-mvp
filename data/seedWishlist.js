@@ -1,41 +1,52 @@
-import { getProduct } from '../lib/catalog.js';
+import { getAllProducts, getProduct } from '../lib/catalog.js';
 
 /**
- * Deterministic Seed Wishlist per architecture.md §11
+ * Deterministic Seed Wishlist per architecture.md §11 & Phase 9
  * Seeds 9 eligible backdated items (>=3 days old, >=2 views, not purchased)
  * and 3 ineligible freshly-added items (<3 days old or <2 views)
+ * Includes Tier 1 (Women, Men, Kids, Footwear) AND Tier 2 (Beauty, Accessories, Home & Living)
  */
 
 export function buildSeedWishlist() {
   const now = Date.now();
   const DAY_MS = 24 * 60 * 60 * 1000;
+  const allProducts = getAllProducts();
 
-  const eligibleSpecs = [
-    { productId: 'w1', daysAgo: 7, viewCount: 4 },
-    { productId: 'w15', daysAgo: 5, viewCount: 3 },
-    { productId: 'm1', daysAgo: 6, viewCount: 4 },
-    { productId: 'm5', daysAgo: 8, viewCount: 5 },
-    { productId: 'k1', daysAgo: 4, viewCount: 3 },
-    { productId: 'f1', daysAgo: 9, viewCount: 6 },
-    { productId: 'b1', daysAgo: 5, viewCount: 3 }, // Tier 2 Beauty
-    { productId: 'h1', daysAgo: 6, viewCount: 4 }, // Tier 2 HomeLiving
-    { productId: 'a1', daysAgo: 4, viewCount: 3 }  // Tier 2 Accessories
+  if (!allProducts || allProducts.length === 0) return [];
+
+  const getProductByDept = (dept, index = 0) => {
+    const list = allProducts.filter(p => p.department === dept);
+    return list[index % list.length] || allProducts[index % allProducts.length];
+  };
+
+  // 9 Eligible items (>=3 days old, >=2 views)
+  const eligibleDepts = [
+    { dept: 'Women', index: 0, daysAgo: 7, viewCount: 4 },
+    { dept: 'Men', index: 0, daysAgo: 5, viewCount: 3 },
+    { dept: 'Kids', index: 0, daysAgo: 6, viewCount: 4 },
+    { dept: 'Footwear', index: 0, daysAgo: 8, viewCount: 5 },
+    { dept: 'Beauty', index: 0, daysAgo: 4, viewCount: 3 },     // Tier 2 Beauty
+    { dept: 'HomeLiving', index: 0, daysAgo: 9, viewCount: 6 }, // Tier 2 HomeLiving
+    { dept: 'Accessories', index: 0, daysAgo: 5, viewCount: 3 },// Tier 2 Accessories
+    { dept: 'Women', index: 1, daysAgo: 6, viewCount: 4 },
+    { dept: 'Men', index: 1, daysAgo: 4, viewCount: 3 }
   ];
 
-  const ineligibleSpecs = [
-    { productId: 'w3', daysAgo: 0, viewCount: 1 },
-    { productId: 'm3', daysAgo: 1, viewCount: 1 },
-    { productId: 'b3', daysAgo: 0, viewCount: 1 }
+  // 3 Ineligible items (<3 days old or <2 views)
+  const ineligibleDepts = [
+    { dept: 'Beauty', index: 1, daysAgo: 0, viewCount: 1 },    // Tier 2 Ineligible
+    { dept: 'Women', index: 2, daysAgo: 1, viewCount: 1 },
+    { dept: 'Footwear', index: 1, daysAgo: 0, viewCount: 1 }
   ];
 
   const seed = [];
 
-  eligibleSpecs.forEach(spec => {
-    const product = getProduct(spec.productId);
+  eligibleDepts.forEach((spec, idx) => {
+    const product = getProductByDept(spec.dept, spec.index);
     if (product) {
       seed.push({
-        id: `wish_${spec.productId}`,
-        productId: spec.productId,
+        id: `wish_${product.id}_${idx}`,
+        productId: product.id,
         addedAt: new Date(now - spec.daysAgo * DAY_MS).toISOString(),
         viewCount: spec.viewCount,
         purchased: false,
@@ -44,12 +55,12 @@ export function buildSeedWishlist() {
     }
   });
 
-  ineligibleSpecs.forEach(spec => {
-    const product = getProduct(spec.productId);
+  ineligibleDepts.forEach((spec, idx) => {
+    const product = getProductByDept(spec.dept, spec.index);
     if (product) {
       seed.push({
-        id: `wish_${spec.productId}`,
-        productId: spec.productId,
+        id: `wish_${product.id}_inelig_${idx}`,
+        productId: product.id,
         addedAt: new Date(now - spec.daysAgo * DAY_MS).toISOString(),
         viewCount: spec.viewCount,
         purchased: false,
