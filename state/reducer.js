@@ -2,7 +2,7 @@ import { buildSeedWishlist } from '../data/seedWishlist.js';
 import { getProduct } from '../lib/catalog.js';
 import { inferPreferredSize } from '../lib/sizing.js';
 
-export const STORAGE_KEY = 'myntra_quickcheck_state_v1';
+export const STORAGE_KEY = 'myntra_quickcheck_state_v2';
 
 // Initial state factory with safe storage fallback
 export function loadInitialState() {
@@ -20,9 +20,15 @@ export function loadInitialState() {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
     const parsed = JSON.parse(raw);
-    if (parsed && Array.isArray(parsed.wishlist)) {
+    if (parsed && Array.isArray(parsed.wishlist) && parsed.wishlist.length > 0) {
+      // Re-hydrate product references with real scraped catalog
+      const rehydratedWishlist = parsed.wishlist.map(item => {
+        const freshProduct = getProduct(item.productId);
+        return freshProduct ? { ...item, product: freshProduct } : item;
+      }).filter(item => item.product);
+
       return {
-        wishlist: parsed.wishlist,
+        wishlist: rehydratedWishlist.length > 0 ? rehydratedWishlist : seedWishlist,
         bag: Array.isArray(parsed.bag) ? parsed.bag : [],
         cachedWhyLines: parsed.cachedWhyLines || {},
         toast: null
@@ -39,16 +45,19 @@ export function loadInitialState() {
 export function appReducer(state, action) {
   switch (action.type) {
     case 'ADD_TO_WISHLIST': {
-      const { productId } = action;
-      const exists = state.wishlist.some(w => w.productId === productId);
-      if (exists) return state; // No-op on duplicate add
+      const p = action.payload || action.product;
+      const targetId = p?.id || action.productId;
+      if (!targetId) return state;
 
-      const product = getProduct(productId);
+      const exists = state.wishlist.some(w => w.productId === targetId || w.id === targetId);
+      if (exists) return state;
+
+      const product = getProduct(targetId) || p;
       if (!product) return state;
 
       const newItem = {
-        id: `wish_${productId}`,
-        productId: productId,
+        id: `wish_${product.id}`,
+        productId: product.id,
         addedAt: new Date().toISOString(),
         viewCount: 1,
         purchased: false,
@@ -62,19 +71,19 @@ export function appReducer(state, action) {
     }
 
     case 'REMOVE_FROM_WISHLIST': {
-      const { productId } = action;
+      const targetId = action.payload || action.productId || action.id;
       return {
         ...state,
-        wishlist: state.wishlist.filter(w => w.productId !== productId)
+        wishlist: state.wishlist.filter(w => w.id !== targetId && w.productId !== targetId)
       };
     }
 
     case 'INCREMENT_VIEW_COUNT': {
-      const { productId } = action;
+      const targetId = action.payload || action.productId;
       return {
         ...state,
         wishlist: state.wishlist.map(w => {
-          if (w.productId === productId) {
+          if (w.productId === targetId || w.id === targetId) {
             return { ...w, viewCount: (w.viewCount || 0) + 1 };
           }
           return w;
@@ -83,18 +92,18 @@ export function appReducer(state, action) {
     }
 
     case 'ADD_TO_BAG': {
-      const { productId, selectedSize: passedSize, quantity = 1 } = action;
-      const product = getProduct(productId);
-      if (!product) return state;
+      const p = action.payload?.product || action.product || getProduct(action.payload || action.productId);
+      const passedSize = action.payload?.size || action.selectedSize;
+      const quantity = action.payload?.quantity || action.quantity || 1;
 
-      // Infer size if missing and product requires size per architecture.md §4
+      if (!p) return state;
+
       let size = passedSize;
       if (!size) {
-        size = inferPreferredSize(state.bag, product.department, product.garmentType);
+        size = inferPreferredSize(state.bag, p.department, p.garmentType);
       }
 
-      // Check if item with same productId and size already exists in bag
-      const existingIdx = state.bag.findIndex(b => b.productId === productId && b.selectedSize === size);
+      const existingIdx = state.bag.findIndex(b => (b.productId === p.id || b.id === p.id) && b.selectedSize === size);
 
       let newBag;
       if (existingIdx >= 0) {
@@ -106,12 +115,12 @@ export function appReducer(state, action) {
         });
       } else {
         const newBagItem = {
-          id: `bag_${productId}_${size || 'nosize'}_${Date.now()}`,
-          productId: productId,
-          selectedSize: size,
+          id: `bag_${p.id}_${size || 'nosize'}_${Date.now()}`,
+          productId: p.id,
+          selectedSize: size || 'Standard',
           quantity: quantity,
           addedAt: new Date().toISOString(),
-          product: product
+          product: p
         };
         newBag = [newBagItem, ...state.bag];
       }
@@ -123,22 +132,26 @@ export function appReducer(state, action) {
     }
 
     case 'REMOVE_FROM_BAG': {
-      const { bagItemId } = action;
+      const targetId = action.payload || action.bagItemId;
       return {
         ...state,
-        bag: state.bag.filter(b => b.id !== bagItemId)
+        bag: state.bag.filter((b, idx) => b.id !== targetId && idx !== targetId)
       };
     }
 
+    case 'UPDATE_BAG_QTY':
     case 'UPDATE_BAG_QUANTITY': {
-      const { bagItemId, quantity } = action;
-      // Ensure quantity never goes below 1 via stepper per edge_cases.md
-      const safeQty = Math.max(1, quantity);
+      const targetIdx = action.payload?.index ?? action.index;
+      const delta = action.payload?.delta ?? 0;
+      const explicitQty = action.payload?.quantity ?? action.quantity;
+
       return {
         ...state,
-        bag: state.bag.map(b => {
-          if (b.id === bagItemId) {
-            return { ...b, quantity: safeQty };
+        bag: state.bag.map((b, idx) => {
+          if (idx === targetIdx || b.id === action.payload?.id) {
+            const currentQty = b.quantity || 1;
+            const newQty = explicitQty !== undefined ? explicitQty : Math.max(1, currentQty + delta);
+            return { ...b, quantity: newQty };
           }
           return b;
         })
@@ -146,7 +159,7 @@ export function appReducer(state, action) {
     }
 
     case 'SET_CACHED_WHY_LINE': {
-      const { productId, checkType, whyLine } = action;
+      const { productId, checkType, whyLine } = action.payload || action;
       const key = `${productId}_${checkType}`;
       return {
         ...state,
@@ -154,24 +167,6 @@ export function appReducer(state, action) {
           ...state.cachedWhyLines,
           [key]: whyLine
         }
-      };
-    }
-
-    case 'SHOW_TOAST': {
-      return {
-        ...state,
-        toast: {
-          message: action.message,
-          toastType: action.toastType || 'info',
-          id: Date.now()
-        }
-      };
-    }
-
-    case 'HIDE_TOAST': {
-      return {
-        ...state,
-        toast: null
       };
     }
 
