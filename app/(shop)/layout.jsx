@@ -38,7 +38,7 @@ export default function ShopLayout({ children }) {
         {/* Primary Search Header Row */}
         <div className="search-header-row">
           <Link href="/" className="brand-logo-btn" title="Myntra Home">
-            M
+            <img src="/myntra-logo.png" alt="Myntra Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </Link>
 
           <Link href="/search" className="search-input-box" style={{ textDecoration: 'none' }}>

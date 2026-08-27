@@ -235,21 +235,15 @@ body {
   gap: 10px;
 }
 
-/* Myntra Stylized Brand Logo */
+/* Myntra Official Brand Logo */
 .brand-logo-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: linear-gradient(135deg, #ff3f6c 0%, #ff527b 100%);
-  color: #ffffff;
-  font-weight: 900;
-  font-size: 20px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(255, 63, 108, 0.3);
-  font-style: italic;
 }
 
 /* Search Bar Box */
