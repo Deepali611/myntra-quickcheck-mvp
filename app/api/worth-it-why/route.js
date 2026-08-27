@@ -1,38 +1,34 @@
 import { NextResponse } from 'next/server';
 import { callGroqAPI } from '../../../lib/groqClient.js';
+import { getWorthFallbackWhy } from '../../../lib/fallbackCopy.js';
 
-export function getWorthFallbackWhy(worth) {
-  if (!worth || !worth.hasAlternative) {
-    return "Similar options don't offer a clear advantage.";
-  }
-  return worth.reasonValue || "Similar options don't offer a clear advantage.";
-}
+export { getWorthFallbackWhy };
 
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { worth, department, productName } = body;
+    const { worth, department } = body;
 
     const fallbackWhy = getWorthFallbackWhy(worth);
 
     const forceFallback = request.headers.get('x-no-api-key') === 'true' || !process.env.GROQ_API_KEY_WORTH;
 
-    if (forceFallback || !worth || !worth.hasAlternative) {
+    if (forceFallback || !worth) {
       return NextResponse.json({ why: fallbackWhy, source: 'fallback' });
     }
 
-    const systemPrompt = `You are a helpful retail product guide. Translate the given worth-it alternative comparison verdict into one short, natural sentence (10-16 words) explaining why to a shopper comparing options. Ground strictly in the given facts. Do NOT invent new facts. Do NOT use banned words: score, confidence, signal, evidence, synthesized, algorithm, data, reviews, or percentages. Use 'buyers' or 'most buyers'.`;
+    const systemPrompt = `You are a retail product guide. Rephrase the given comparative price fact directly and confidently without third-party attribution. Do NOT suggest a different product. Do NOT use: "buyers say", "most buyers", "shoppers found", "reviews mention", "reviews say", score, confidence, signal, evidence, synthesized, algorithm, data, or percentages. Write one natural 8-14 word sentence confirming value.`;
 
-    const userPrompt = `Department: ${department || 'Apparel'}. Product: ${productName || 'Wishlisted item'}. Reason type: ${worth.reasonType}. Reason details: ${worth.reasonValue}. Write one natural why-line sentence for a shopper.`;
+    const userPrompt = `Value fact: ${worth.why || fallbackWhy}. Write one direct why-line sentence confirming value for this item.`;
 
     const aiWhy = await callGroqAPI('GROQ_API_KEY_WORTH', systemPrompt, userPrompt);
 
-    if (aiWhy) {
+    if (aiWhy && !aiWhy.toLowerCase().includes('buyer') && !aiWhy.toLowerCase().includes('shopper')) {
       return NextResponse.json({ why: aiWhy, source: 'ai' });
     }
 
     return NextResponse.json({ why: fallbackWhy, source: 'fallback' });
   } catch (err) {
-    return NextResponse.json({ why: "Similar options don't offer a clear advantage.", source: 'fallback' });
+    return NextResponse.json({ why: 'Best price we found for this style.', source: 'fallback' });
   }
 }

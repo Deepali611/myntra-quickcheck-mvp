@@ -67,6 +67,14 @@ architecture.md.
   garment type. If a data-generation step ever produces a mismatch (e.g. a
   "Peach Kurta" showing a green photo), that product should fail catalogue
   validation at build time rather than ship silently wrong.
+- **Search returns a plausible-looking but wrong-category image** (e.g. a
+  "Kurti" search returning a general dress photo, "Homeliving" returning a
+  bedsheet under the wrong subcategory): this is caught by the metadata
+  verification step in `fetch-images.js` (§3b) — a candidate whose own
+  alt-text/tags don't contain the expected keyword is rejected, not
+  accepted just because it was the top search result. If verification
+  fails for every candidate across all fallback attempts, that product is
+  skipped rather than shipped with an unverified image.
 - **Image ingestion finds no good match for a specific query** (e.g. a very
   specific colour/style combination): `fetch-images.js` falls back to a
   broader search rather than failing the whole ingestion run, and logs the

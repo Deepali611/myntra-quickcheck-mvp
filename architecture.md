@@ -6,6 +6,13 @@ this file is the technical implementation of those principles.
 
 ## 1. Tech stack (locked)
 - Next.js 15 (App Router), React 19
+- Typography: `'Roboto', -apple-system, 'San Francisco', system-ui,
+  sans-serif` — this is Myntra's actual app typeface (confirmed by Myntra's
+  own engineering team: they use Roboto on Android, San Francisco on iOS,
+  not a custom webfont, specifically to keep the app fast). Load Roboto via
+  Google Fonts. Do not substitute a different sans-serif (Inter, system-ui
+  alone, etc.) — this is a specific, verifiable, non-negotiable choice, not
+  an aesthetic preference.
 - Plain CSS, component-scoped files (CSS Modules)
 - Deployment: Vercel, API routes as Next.js Route Handlers under `app/api/`
 - Node engine pinned in `package.json` (`"engines": { "node": "20.x" }`) and
@@ -17,13 +24,53 @@ this file is the technical implementation of those principles.
 - `next dev` runs API routes natively — no separate CLI step is needed to
   test them locally, unlike a plain Vite setup.
 
-**Target device (locked):** this is a mobile-first build. Every reference
-screenshot is the Myntra mobile app. Build for a mobile viewport
-(~375-430px wide) as the primary target — layout, spacing, and touch target
-sizes all follow mobile conventions. It's fine if the deployed page doesn't
-have bespoke desktop layouts; it should at minimum stay centered and usable
-at desktop width, not require a mobile emulator to evaluate. Do not design
-this as a desktop-first responsive site that happens to work on mobile.
+**Target device (locked):** this is a mobile-first build, rendered as an
+actual simulated phone, not a responsive webpage that happens to be narrow.
+Build a `PhoneFrame` component wrapping the whole app:
+- A device shell: dark bezel, rounded corners, a status bar showing a live
+  clock and simple signal/WiFi/battery glyphs, sized to a real device
+  viewport (e.g. 412×915 CSS px) and scaled via JS to fit the actual browser
+  window on resize — the app's own layout is measured against the true
+  device width, never against the shrunk browser window directly.
+- All actual app content renders inside an internal scrollable region
+  (flex: 1, overflow-y: auto) nested inside that shell — this is what makes
+  the page scroll correctly; a page with no such internal scroll container
+  is the direct cause of a broken/non-scrolling screen.
+- This is not decorative — a plain `max-width: 480px` centered div is not
+  sufficient and does not satisfy this requirement. If the deployed page
+  doesn't visually resemble an actual phone (bezel, status bar, contained
+  scroll), this checkpoint has not been met.
+
+**Department/category tile images (locked — corrected from an earlier
+version of this rule):** real Myntra category tiles (Kurta Sets, Jeans,
+Watches, Lipstick, etc.) are actual product photography, not illustrated
+icons — an earlier version of this spec wrongly called for icons here,
+which produced a cartoon/tacky mismatch with real Myntra. The correct rule:
+- Department/category tiles use real photos from the same licensed
+  ingestion pipeline (§3b) — Pexels/Unsplash, downloaded locally, never
+  hotlinked, never illustrated.
+- This is a small, fixed set (~12-15 tiles total across the department rail
+  and category grid) — every single one must be individually verified by a
+  human (you, during Phase 6/7 review) to genuinely match its own label. A
+  "Watches" tile must show an actual watch, a "Jeans" tile an actual pair
+  of jeans — no exceptions, and because the set is small, there's no excuse
+  for a mismatch to ship.
+- Never source a department tile image from the same pool as full product
+  catalogue photos without re-verifying it matches — the earlier "Bags
+  showing a watch" bug was a pipeline mix-up, not a reason to abandon
+  photography for that section.
+
+**UI chrome icons (locked, separate from the above):** the bell, wishlist
+heart, bag, profile, search-bar microphone, and search-bar camera icons in
+the header ARE simple vector icons (this part was already correct) — but
+they must match Myntra's actual icon style specifically: thin-line,
+minimalist, single-weight stroke icons, not a generic icon library's
+mismatched glyph shapes or a filled/bold style. Build these as custom
+inline SVGs matching the exact shapes shown in the reference screenshots
+(outlined heart, outlined bag with a strap, thin bell outline, simple
+circular profile outline, thin mic outline, thin camera outline) — do not
+substitute a stock icon library's version of "heart" or "bell" that happens
+to be close enough.
 
 ## 2. Routes and screen chrome
 
@@ -111,18 +158,35 @@ runtime, never on the deployed app):
    (e.g. "peach floral kurta", "black running sneakers", "matte red
    lipstick", "white ceramic table lamp"), query the Pexels Search API
    (primary — generous free tier for a one-time bulk pull; Unsplash API as
-   fallback) with matching keywords.
-2. Download the best-matching result to `public/products/{id}.jpg`.
-3. Record `{ id, sourceProvider, photographerCredit, sourceUrl, license }`
-   in `data/image-sources.json` — an internal provenance manifest (not
-   shown to shoppers, but keeps the project's sourcing auditable and
-   supports the deck's data-honesty disclosure).
-4. If no good match is found for a very specific query, fall back to a
-   broader query (e.g. drop the colour, search just the garment/product
-   type) rather than failing the ingestion run — log which products used a
-   fallback match so they can be spot-checked, without turning this into
-   manual entry for the whole catalogue.
-5. Requires a Pexels/Unsplash API key **only for this local script run** —
+   fallback) with matching keywords. Use specific, garment-accurate query
+   phrasing, not generic single words — e.g. "indian kurti ethnic top", not
+   just "kurti", since imprecise search terms are the main cause of a
+   mismatched result.
+2. **Verify before accepting, not just take the top result.** Fetch the top
+   3-5 candidates for each query, not just one. Each Pexels/Unsplash result
+   comes with its own alt-text/tags/description metadata — check that this
+   metadata actually contains the expected subcategory keyword (or a close
+   synonym) before accepting a candidate. Take the first candidate that
+   passes this check, not blindly the first result returned. This is the
+   real fix for the "category says X, image shows Y" failure mode — a
+   better search query alone does not guarantee this, checking the
+   result's own metadata against what was intended does.
+3. Download the verified match to `public/products/{id}.jpg`.
+4. Record `{ id, sourceProvider, photographerCredit, sourceUrl, license,
+   matchedKeyword }` in `data/image-sources.json` — an internal provenance
+   manifest (not shown to shoppers, but keeps the project's sourcing
+   auditable, supports the deck's data-honesty disclosure, and gives you a
+   concrete field to check during review — `matchedKeyword` should always
+   contain the subcategory you expected).
+5. If none of the top candidates pass the metadata check for a specific
+   query, fall back to a broader query (e.g. drop the colour, search just
+   the garment/product type) and re-run the same verification step against
+   that broader query's candidates — never skip verification just because
+   it's a fallback. Log which products used a fallback match. If even the
+   broadest reasonable query can't produce a verified match, skip that
+   specific product rather than accepting an unverified image — a smaller
+   catalogue with correct images beats a complete catalogue with wrong ones.
+6. Requires a Pexels/Unsplash API key **only for this local script run** —
    this key is never needed by the deployed app and never goes into
    Vercel's environment variables.
 
@@ -179,123 +243,138 @@ and validated again at catalogue load time as a safety net (§edge_cases.md).
   shopper's most-used size already in the Bag; default to `M` / `8` if
   nothing to infer from. Never block the action for a missing size.
 
-## 5. Quick Check data schema (per product, category-aware)
+## 5. Quick Check data schema (per product, category-aware, per-size where applicable)
 
 This is synthesized, deterministic data — same product, same values, every
 load. Computed from a hash of the product id, not random per session.
 
-**The schema shape is identical across every department** — this is the
-"same three-check framework, category-aware meaning" principle from
-context.md. What changes per department is (a) the controlled vocabulary of
-valid `flaggedZone`/`flaggedAttribute` values, and (b) the Layer 4 evidence
-type. Both are resolved via `lib/categoryAdapters.js` (§5a), keyed by
-`department` — there is no separate feature system per category, only a
-config lookup.
+**Fit is indexed by size (Fashion/Footwear only) — a flat one-size verdict
+is wrong.** The same product can be true to size in M and run short in XL.
+For departments where Fit doesn't apply at all (most of Tier 2), `fit` is
+simply absent from that product's applicable checks (§5a) — not present
+with `applicable: false`, since the check shouldn't appear in the sheet at
+all, not appear and be disabled.
 
 ```json
 {
   "productId": "p1",
+  "department": "Women",
+  "availableChecks": ["fit", "looks", "worth"],
   "fit": {
-    "applicable": true,           // false for departments/products with no meaningful fit dimension
-    "flaggedZone": "chest",       // vocabulary depends on department, see §5a
-    "direction": "small",         // "small" | "true" | "large" | null
-    "confidence": "high"          // "low" triggers the honest fallback state, never shown to shopper
+    "S":  { "status": "true" },
+    "M":  { "status": "true" },
+    "L":  { "status": "true" },
+    "XL": {
+      "top":    { "direction": "loose", "zone": "chest" },
+      "bottom": { "direction": "short", "zone": "length" }
+    }
   },
   "looks": {
-    "flaggedAttribute": "fabric", // vocabulary depends on department, see §5a
+    "attribute": "fabric",
+    "direction": "lighter",
     "confidence": "high",
     "featuredPhotos": [
       { "url": "string", "label": "as_worn" }
-    ]                              // curated, 2-4 entries max, only for products with real signal — see §7
+    ]
   },
   "worth": {
-    "hasAlternative": true,
-    "alternativeId": "p7",
-    "reasonType": "price",        // "price" | "rating" | "fit" | "looks" — exactly one, the strongest, always category-agnostic
-    "reasonValue": "₹150 cheaper, similar rating"
+    "why": "Cheaper than 4 of 5 similar kurta sets we found.",
+    "unitPriceApplies": false
   }
 }
 ```
 
-### 5a. Category adapters (locked per department)
+Footwear's `fit` uses a different vocabulary (no chest/waist — accuracy and
+width instead):
+```json
+"fit": {
+  "UK7": { "status": "true" },
+  "UK8": { "status": "true" },
+  "UK9": { "sizeAccuracy": "small", "width": "true" }
+}
+```
 
-| Department | `fit` meaning | `fit` vocabulary | `looks` meaning | `looks` vocabulary | Layer 4 (fit) | Layer 4 (looks) |
-|---|---|---|---|---|---|---|
-| Women/Men/Kids clothing (Tier 1) | Size/fit zone | chest, waist, shoulder, sleeve, hip, length, bust (per garmentType, §5b) | Photo/fabric accuracy | colour, fabric, print, fit_in_photo | Size guide/chart | Full-screen curated photo viewer |
-| Footwear (Tier 1) | Size/comfort | whole-shoe only: small/true/large, no zone | Material/construction vs. photos | colour, material, sole_feel | Size guide (shoe-specific) | Full-screen curated photo viewer |
-| Beauty (Tier 2) | Suitability for skin tone/type | shade_match, skin_type_fit | Texture/finish/wear-through-day | texture, finish, longevity | Shade/skin-type finder | Swatch viewer |
-| Accessories — bags (Tier 2) | Capacity/use-fit | capacity | Material/finish quality | material, finish, hardware | Capacity guide (dimensions) | Material close-up viewer |
-| Accessories — jewellery/watches (Tier 2) | Style/use-fit | `applicable: false` (no meaningful fit dimension) | Material/finish quality | material, finish, plating | n/a | Material close-up viewer |
-| Home & Living (Tier 2) | Size/space fit | space_fit | Material/finish/durability | material, finish, texture | Space/dimension calculator | Material close-up viewer |
+`availableChecks` is **derived from department/subcategory per §5a's
+table, never hand-picked per product** — this keeps applicability
+consistent across the whole catalogue instead of an ad-hoc per-product
+decision.
 
-`lib/categoryAdapters.js` exports `getAdapter(department)` returning the
-valid vocabulary and Layer 4 type for that department — `quickCheckData.js`
-and the UI components both read from this single source, so adding or
-adjusting a department's behavior never means touching feature logic in
-multiple places.
+### 5a. Which checks apply per department/subcategory (locked)
 
-**Tier 2 honesty rule (locked):** every Tier 2 department's Quick Check
-copy must still pass the same voice/banned-word rules as Tier 1 — but the
-underlying `confidence` distribution for Tier 2 products should skew
-towards `"low"` more often than Tier 1, since there's deliberately less
-underlying signal to synthesize from for a framework extension rather than
-a researched segment. Don't manufacture false confidence to make Tier 2
-"look" as evidence-rich as Tier 1 — an honest, frequent "not enough to say
-yet" in Beauty/Home/Accessories is more defensible than fabricated
-certainty.
+| Department / subcategory | Fit | Looks | Worth It |
+|---|---|---|---|
+| Women/Men/Kids — apparel | ✅ size + zone, per §5b | ✅ colour/fabric/print | ✅ |
+| Footwear | ✅ size + width | ✅ colour/material | ✅ |
+| Beauty — colour cosmetics (lipstick, foundation) | — | ✅ shade match only | ✅ (unit price, §6) |
+| Beauty — skincare | — | — | ✅ (unit price, §6) |
+| Home & Living | — | ✅ colour/print/material match | ✅ (unit price if applicable) |
+| Accessories (bags, jewellery, watches) | — | ✅ colour/material match | ✅ |
 
-If `fit.applicable` or a department has no meaningful fit dimension (e.g.
-jewellery), `fit.confidence` is always `"low"` and the UI should reflect
-"not applicable" rather than forcing a verdict.
+**The Quick Check sheet only lists rows for checks that apply** — a
+skincare product's sheet shows exactly one row (Worth It), never three
+rows with two greyed out. This is more honest than the earlier "Tier
+1/Tier 2 adapter" approach, which offered Fit/Looks everywhere with
+adapted meaning even where no real signal exists — that risked implying a
+check applies when it structurally can't (e.g. "fit" for a skincare
+serum).
 
-### 5b. Garment-type fit zones (Tier 1 departments only)
+Layer 4 evidence type per check, resolved via `lib/categoryAdapters.js`:
+
+| Check | Fashion/Footwear Layer 4 | Beauty Layer 4 | Home/Accessories Layer 4 |
+|---|---|---|---|
+| Fit | Size guide/chart | n/a (not offered) | n/a (not offered) |
+| Looks | Full-screen curated photo viewer | Shade swatch viewer | Material/finish close-up viewer |
+
+`lib/categoryAdapters.js` exports `getApplicableChecks(department,
+subcategory)` (the §5a table above) and `getLayer4Type(check, department)`
+— `quickCheckData.js` and the UI components both read from this single
+source.
+
+### 5b. Garment-type fit zones (Fashion/Footwear only)
 - `top` / kurta-set top piece / shirt / tshirt: chest, shoulder, sleeve
 - `pants` / kurta-set bottom piece / jeans: waist, length, hip
 - `dress`: bust, waist, length
 - `saree` / `heels` / `sneakers` / `flats`: no zone (whole-garment
   true/small/large only)
 - `kidswear`: chest, length (age-size-chart based, not adult zones)
+- Multi-piece garments (kurta sets) can have top and bottom flagged
+  independently within the same size, per the schema above.
 
 `lib/quickCheckData.js` — `getQuickCheckData(productId)`, deterministic
-hash-based generation of the above shape across the whole catalogue at build
-time (not computed live per request), reading each product's `department`
-to resolve the correct adapter from §5a.
+hash-based generation of the above shape across the whole catalogue at
+build time, reading each product's `department`/`subcategory` to resolve
+`availableChecks` from §5a and only generating data for checks that apply.
 
-## 6. Worth It — the concrete threshold rule (locked, not left to inference)
+## 6. Worth It — confirmation only, never a competing product (locked)
 
-Candidate pool: same `department` AND same `subcategory`, price within
-±25% of the wishlisted item, excluding itself. Never compare across
-departments (a kurta is never compared to a lipstick).
+**Worth It never shows an alternative product to switch to.** This was a
+deliberate correction: showing a different product with its own Add to Bag
+directly undermines this project's actual success metric (purchase of the
+*wishlisted* item specifically) — a shopper convinced to buy a different
+product instead is not a win for what's being measured. Worth It is always
+a confirmation of the shopper's own pick, backed by one real comparative
+fact.
 
-Check reasons in this order; the first one that clears its threshold is used
-as `reasonType`. If none clears, `hasAlternative = false`.
+| State | Headline | Why (a real fact, stated directly) |
+|---|---|---|
+| Comparable data exists | "Good value for this pick" | A specific comparative fact, e.g. "Cheaper than 4 of 5 similar kurta sets we found." |
+| No comparable data | "Good price for this pick" | "Best price we found for this style." |
 
-1. **Price**: candidate's `salePrice` is at least ₹150 AND at least 10%
-   lower than the wishlisted item's, AND candidate's `rating` is not more
-   than 0.2 lower. → `reasonType: "price"`, `reasonValue`: e.g. "₹180
-   cheaper, similar rating."
-2. **Rating**: candidate's `rating` is at least 0.3 higher, AND candidate's
-   `salePrice` is not more than 15% higher. → `reasonType: "rating"`,
-   `reasonValue`: e.g. "Rated 4.6 vs 4.2, similar price."
-3. **Fit**: wishlisted item's `fit.confidence = "high"` and
-   `fit.direction != "true"` (i.e. it runs small/large), AND a candidate
-   exists with `fit.direction == "true"` at a comparable price (±15%).
-   → `reasonType: "fit"`, `reasonValue`: e.g. "Fits true to size, this one
-   runs small."
-4. **Looks**: wishlisted item's `looks.flaggedAttribute != null` (a real
-   difference from photos exists), AND a candidate exists with
-   `looks.flaggedAttribute == null` at a comparable price (±15%).
-   → `reasonType: "looks"`, `reasonValue`: e.g. "Matches its photos closely,
-   this one doesn't quite."
+**Unit-price rule (locked):** for categories where pack size varies (most
+Beauty, some Home & Living), the comparative fact must be stated as
+price-per-unit (₹/g, ₹/ml), never raw price — comparing raw prices across
+different pack sizes is factually misleading even when technically
+accurate. `worth.unitPriceApplies: true` flags these products; the
+comparative fact generator must use unit price for them.
 
-Only ONE candidate is ever surfaced — the first reason type that clears its
-threshold, using the single best-qualifying candidate for that reason. Never
-combine reasons, never show more than one alternative.
+No alternative product, no second "Add to Bag," no product card besides
+the shopper's own pick, in any state, for any department.
 
-`lib/worthItComparison.js` — pure function implementing this exactly,
-no AI call inside it. Document the thresholds in code comments — they're a
-deck talking point (this is your defensible, explainable "genuinely
-meaningful" rule).
+`lib/worthItComparison.js` — pure function generating the comparative fact
+above from the catalogue (e.g. computing "cheaper than N of M similar
+products") — deterministic, no AI call inside it, and never returns a
+different product's id for the shopper to navigate to.
+
 
 ## 7. Looks Check photo curation (locked)
 
@@ -318,7 +397,7 @@ never starves another:
 |---|---|---|---|---|
 | `/api/fit-check-why` | `app/api/fit-check-why/route.js` | `GROQ_API_KEY_FIT` | `fit` object for the product | one natural-language why-line |
 | `/api/looks-check-why` | `app/api/looks-check-why/route.js` | `GROQ_API_KEY_LOOKS` | `looks` object for the product | one natural-language why-line |
-| `/api/worth-it-why` | `app/api/worth-it-why/route.js` | `GROQ_API_KEY_WORTH` | `worth` object + alternative product summary | one natural-language why-line |
+| `/api/worth-it-why` | `app/api/worth-it-why/route.js` | `GROQ_API_KEY_WORTH` | `worth` object (comparative fact only, per §6 — never an alternative product) | one natural-language why-line |
 
 Each route file exports `export async function POST(request)` (Next.js
 Route Handler signature) and returns a `Response` object with the JSON
@@ -353,8 +432,12 @@ and never guessing at department-specific vocabulary beyond what §5a
 already resolved for that product.
 
 **Banned words in any output**: score, confidence, signal, evidence,
-synthesized, algorithm, data, "reviews say"/"reviews mention" (say "buyers"
-instead), any raw percentage.
+synthesized, algorithm, data, "reviews say"/"reviews mention", "buyers
+say"/"most buyers"/"shoppers found" (state the fact directly instead — see
+§10, this is a correction from an earlier version of this rule which
+recommended attributing claims to "buyers"), any raw percentage, any
+invented headcount, any fake urgency/scarcity language ("X people viewing
+this," countdown timers, invented stock claims).
 
 **Deterministic fallback** (used whenever the Groq call returns `null`) —
 hand-written templates, used verbatim, exactly matching the tables in §9.
@@ -369,96 +452,129 @@ cancelled if the shopper navigates away before it resolves.
 
 ## 9. Verdict tables and fallback copy (hand-written, used verbatim as fallback; also given to Groq as the style/fact target)
 
-These tables cover Tier 1 (clothing/footwear) fully. Tier 2 departments use
-the same headline/why *pattern*, with the department's own §5a vocabulary
-substituted in — two worked examples are given below so the pattern is
-unambiguous, not left to inference for the remaining departments.
+**Direct statement, no third-party attribution (corrected from an earlier
+version):** state facts directly and confidently — "Runs loose on top,"
+not "Most buyers said this runs loose on top." The shopper should feel
+resolved about their own decision, not told what a crowd thinks. This
+applies to every table below and to every Groq-generated why-line.
 
-**Fit Check — Tier 1 (Women/Men/Kids clothing, Footwear)** — keyed on
-`fit.flaggedZone` / `fit.direction` / `fit.confidence`:
+**Fit Check (Fashion/Footwear only, per selected size)** — keyed on that
+size's entry in the `fit` object (§5):
 
-| Condition | Headline | Visual | Fallback why |
-|---|---|---|---|
-| confidence=low | "Hard to tell from what we have" | garment icon, no zone marked, slider greyed out | "Not enough data yet for this size." |
-| direction=true | "True to size" | garment icon, no zone marked, slider centered | "Most buyers wore their regular size." |
-| direction=small | "Runs small at the {zone}" | garment icon, {zone} marked, slider toward snug | "Most buyers said the {zone} felt snug and sized up for it." |
-| direction=large | "Runs large at the {zone}" | garment icon, {zone} marked, slider toward roomy | "Most buyers said the {zone} felt loose and sized down for it." |
+| Condition | Headline | Sub-line (why) |
+|---|---|---|
+| No data for this size | "Not enough to say for {size} yet" | "Check the size chart before you buy." |
+| status: true | "True to size in {size}" | "Fits just right — no adjustments needed." |
+| top+bottom both flagged | "Runs loose on top, short on the bottoms" | "Consider sizing down on top and a longer inseam if available." |
+| one piece flagged, direction=loose/large | "Runs loose at the {zone}" | "Consider sizing down for a closer fit at the {zone}." |
+| one piece flagged, direction=short/small | "Runs snug at the {zone}" | "Consider sizing up for more room at the {zone}." |
+| Footwear, sizeAccuracy=small | "Runs a little small — go half a size up" | (visual only, no extra sub-line needed) |
+| Footwear, sizeAccuracy=large | "Runs a little large — go half a size down" | (visual only, no extra sub-line needed) |
+
+**UI requirement:** size chips across the top of the Fit card (every size
+the product offers), defaulting to the shopper's own known size if
+available, otherwise the most common size. The verdict below updates live
+per selected chip — never a static one-size verdict.
+
+**Add to Bag from Fit carries the selected size**: button reads "Add to
+Bag — Size {size}" using whichever chip is currently selected — no second
+size-selection step on a separate screen.
 
 Layer 4 (tap visual): opens the real size guide/chart for that garment type.
 
-**Fit Check — Tier 2 worked example (Beauty)** — keyed on the same
-schema, `fit.flaggedZone` values drawn from §5a's Beauty vocabulary
-(`shade_match`, `skin_type_fit`):
+**Looks Check** — headline generated from two real fields, `attribute` and
+`direction`, never a fixed sentence — applies across all departments that
+offer Looks (§5a), using that department's own vocabulary for `attribute`:
 
-| Condition | Headline | Visual | Fallback why |
-|---|---|---|---|
-| confidence=low | "Hard to tell from what we have" | shade swatch icon, greyed out | "Not enough data yet for this shade." |
-| flaggedZone=shade_match, direction=true | "True to shade shown" | shade swatch matching product photo | "Most buyers found the shade matched what's shown." |
-| flaggedZone=shade_match, direction=small/large (reads as "lighter"/"deeper") | "Runs {lighter/deeper} than shown" | shade swatch shifted | "Most buyers found it {lighter/deeper} than the photo in person." |
-| flaggedZone=skin_type_fit | "Best for {skin type}" | skin-type icon | "Most buyers with {skin type} skin found this worked well for them." |
+| attribute | direction | Generated headline |
+|---|---|---|
+| (any) | (confidence=low) | "Not enough to say yet" |
+| fabric / material | lighter | "{Attribute} reads a shade lighter than photos" |
+| colour | warmer | "Colour looks slightly warmer than shown" |
+| print | smaller | "Print runs a bit smaller than the listing photo" |
+| (none flagged) | match | "Matches the photos closely" |
 
-Layer 4 (tap visual): opens the shade/skin-type finder for that product
-(§5a). **Every other Tier 2 department (Accessories, Home & Living) follows
-this identical pattern** — same headline structure, same why-line
-structure, substituting that department's own §5a vocabulary
-(capacity/space_fit) in place of shade_match. Do not invent a different
-copy structure per department — the pattern is fixed, only the vocabulary
-changes.
+Sub-line for a flagged attribute: state the difference directly, e.g.
+"The fabric felt slightly different from the photos" — never "some buyers
+said."
 
-**Looks Check — Tier 1 (clothing/footwear)** — keyed on
-`looks.flaggedAttribute` / `looks.confidence`:
+**Visual must match the claim, not just illustrate the concept.** If the
+headline says "lighter," the as-shown/as-worn comparison must visibly show
+a lighter variant, not an identical swatch with a different label — text
+and visual must never contradict each other.
 
-| Condition | Headline | Visual | Fallback why |
-|---|---|---|---|
-| confidence=low | "Not enough to say yet" | single "as shown" photo only, no swipe | "Not enough buyer photos yet for this item." |
-| flaggedAttribute=null | "Looks as expected" | swipeable as-shown/as-worn pair | "Colour, print and fabric all matched the photos." |
-| flaggedAttribute set | "Mostly as expected" | same swipe | "{Attribute} was slightly different from the photos for some buyers." |
+Layer 4 (tap visual): for Fashion/Footwear, opens a full-screen viewer of
+the curated `featuredPhotos` set (§7). For Beauty, opens a shade swatch
+viewer. For Home/Accessories, opens a material/finish close-up viewer.
+Never more than what's curated, never a raw review gallery.
 
-Layer 4 (tap visual): opens a full-screen viewer of the curated
-`featuredPhotos` set (§7) — never more than what's curated, never a raw
-review gallery.
+**Worth It** — per §6, identical structure for every department:
 
-**Looks Check — Tier 2 worked example (Home & Living)** — keyed on the
-same schema, `looks.flaggedAttribute` values drawn from §5a's Home
-vocabulary (`material`, `finish`, `texture`):
+| Condition | Headline | Why (direct, no attribution) |
+|---|---|---|
+| Comparable data exists | "Good value for this pick" | The specific comparative fact from §6, e.g. "Cheaper than 4 of 5 similar kurta sets we found." (unit price for `unitPriceApplies: true` products) |
+| No comparable data | "Good price for this pick" | "Best price we found for this style." |
 
-| Condition | Headline | Visual | Fallback why |
-|---|---|---|---|
-| confidence=low | "Not enough to say yet" | single product photo only | "Not enough buyer photos yet for this item." |
-| flaggedAttribute=null | "Looks as expected" | close-up material/finish photo pair | "Material and finish matched the photos for most buyers." |
-| flaggedAttribute set (e.g. "material") | "Mostly as expected" | same close-up pair | "The {attribute} felt slightly different from the photos for some buyers." |
-
-Layer 4 (tap visual): opens a material/finish close-up viewer for that
-product (§5a). Beauty and Accessories follow this same pattern with their
-own §5a vocabulary (texture/finish/longevity for Beauty; material/finish/
-hardware or plating for Accessories).
-
-**Worth It** — keyed on §6 result, identical for every department since
-`reasonType` (price/rating/fit/looks) is category-agnostic by design:
-
-| Condition | Headline | Visual | Fallback why |
-|---|---|---|---|
-| hasAlternative=false | "This looks like a good pick" | single product card | "Similar options don't offer a clear advantage." |
-| hasAlternative=true | "You may want to compare" | two cards side by side, badge on the differentiator | uses `reasonValue` directly, phrased naturally per reasonType |
-
-Layer 4 (tap visual / tap "Compare"): opens the alternative's real PDP.
-**Add to Bag on this screen always adds the original wishlisted item** — the
-alternative is only added if the shopper reaches its own PDP and chooses to.
+Never a second product card, never a second Add to Bag, in any state.
 
 ## 10. Copy rules (apply everywhere in Quick Check)
-- Never name "reviews" as a source — say "buyers" or "most buyers."
+- **State facts directly — no third-party attribution.** Never "buyers
+  say," "most buyers found," "shoppers report." This is a correction from
+  an earlier version of this rule.
 - Never invent headcounts or fabricate quotes.
+- Never manufacture urgency or scarcity — no countdown timers, no "X
+  people viewing this," no invented stock claims. This isn't just a tone
+  preference: India's Consumer Protection (E-Commerce) dark-pattern
+  guidelines (2023) explicitly prohibit fabricated urgency in e-commerce.
+  Any persuasion must come from a real per-product fact (§6), never
+  manufactured pressure.
+
 - Headline, visual, and why-line describe the exact same fact at three
   levels of detail — the why-line never introduces a new fact.
 - Every check has a genuine "not enough data" state — never force a
   positive verdict when `confidence = "low"`.
 
+
+## 10a. Visual fidelity requirement (locked — applies to every screen)
+
+This project's evaluation depends on it genuinely looking and feeling like
+Myntra, not an approximation. This is not a "nice to have" — treat it with
+the same rigor as a functional bug.
+
+Every screen must match the attached reference screenshots on:
+- **Typography**: Roboto per §1, correct weight per element (bold ~700 for
+  headers/prices, medium ~600 for labels/buttons, regular ~400 for body
+  text) — check this against the screenshots, don't guess.
+- **Iconography**: thin-line UI chrome icons matching Myntra's exact shapes
+  (§ department tiles), real product photography for category tiles (§3a),
+  never a generic icon library substitute for either.
+- **Spacing and layout density**: card padding, gaps between elements, and
+  section spacing should match the visual density shown in the
+  screenshots — not looser or tighter.
+- **Colour**: the token set in §1/§14, applied consistently — no
+  off-palette colours anywhere.
+- **Card and button styling**: border radius, shadow weight (Myntra's cards
+  use a subtle, barely-visible shadow, not a heavy drop shadow), button
+  shapes (pill-shaped primary actions, outlined secondary actions) matching
+  the reference exactly.
+
+**Mandatory self-check before claiming any UI phase is complete:** go
+through the attached reference screenshots element by element (header,
+icons, cards, spacing, colour, type) and compare against what was actually
+built. List any deviations found and fix them BEFORE reporting the phase
+as done — do not report a phase complete based on the route/logic working
+alone when the phase involves visible UI. A phase that is functionally
+correct but visually wrong has not met its checkpoint.
+
 ## 11. Wishlist screen
 Matches reference screenshots: item count header, location bar,
-Collections/Out of Stock tabs, category circles, product cards with
-delete/move/share icons. Add: a "Quick Check" entry point per eligible card
-(icon or label consistent with Myntra's existing iconography — not a new
-visual language).
+Collections/Out of Stock tabs (unchanged — do not remove or replace either
+to make room for Quick Check), category circles, product cards with
+existing delete/move/share icons (unchanged).
+
+Add to each eligible card: a labeled **"👁 Quick Check"** button — full
+width, same visual weight as a normal action button, positioned below the
+price. Not a small icon alone — a small icon is too easy to miss.
 
 Eligibility rule: `wishlist_age >= 3 days AND viewCount >= 2 AND not purchased`.
 `data/seedWishlist.js` deterministically seeds 8-10 backdated, eligible
@@ -466,18 +582,40 @@ items and 2-3 freshly-added, deliberately ineligible items (showing a
 locked state, not hiding the feature) — this proves the gating logic is
 real, not hidden.
 
-## 12. Quick Check UI (bottom sheet)
-`components/QuickCheckSheet.jsx` — portal-rendered, dim backdrop, swipe
-or tap to dismiss.
-- Opens to: "Quick Check" / "What do you want to check?" — Fit Check /
-  Looks Check / Worth It, each with its one-line shopper question.
-- Pick one → a detail card (`FitCheckCard.jsx`, `LooksCheckCard.jsx`,
-  `WorthItCard.jsx`) driven entirely by that product's data object — one
-  generic component per check type, never hardcoded per product.
-- Each card: Verdict headline → Visual (tappable, opens Layer 4) → "Why?"
-  tap reveals the why-line → primary action (Add to Bag, or Compare for
-  Worth It).
-- Confirmation toast on action, returns to Wishlist.
+## 12. Quick Check UI (bottom sheet, with Overview synthesis screen)
+`components/QuickCheckSheet.jsx` — portal-rendered, dim backdrop, swipe or
+tap to dismiss.
+
+Flow:
+```
+Wishlist → tap "👁 Quick Check" on a product card
+Sheet → shows ONLY the checks that apply to this product (§5a) —
+        a skincare product shows one row (Worth It), never three with
+        two greyed out
+  → tap a check
+Detail (per check, §9) → "Why?" reveals the reason → back returns to Overview
+Overview (shown after any check is opened once, or as the default landing
+          if only one check applies) →
+  all applicable checks listed with their specific finding →
+  one closing sentence synthesizing every flag into a single line →
+  ONE "Add to Bag" button — pre-filled with the suggested size if Fit
+  flagged one
+```
+
+**The Overview screen is the actual conversion moment** — this is where
+doubts resolved individually get synthesized into one decision. Do not
+skip straight from a single check's detail view to Add to Bag without this
+synthesis step when more than one check applies to the product. When only
+one check applies (common for Tier 2 departments), the Overview can be
+the same screen as that check's detail, since there's nothing to
+synthesize across.
+
+`FitCheckCard.jsx`, `LooksCheckCard.jsx`, `WorthItCard.jsx`,
+`OverviewCard.jsx` — one generic component per check type plus the
+synthesis screen, never hardcoded per product; each driven entirely by
+that product's data object and `availableChecks` (§5).
+
+Confirmation toast on Add to Bag, returns to Wishlist.
 
 ## 13. State management
 `state/store.jsx` — reducer + context, sessionStorage-backed. Holds
@@ -497,19 +635,32 @@ Env vars (set in Vercel dashboard, and in local `.env` for `next dev`):
 ## 15. Explicit cuts
 Real payment/checkout, real address management, full search relevance
 engine, push notifications, any coupon/price-drop mechanic beyond realistic
-pricing display, an open-ended chatbot interface, showing more than one
-Worth It alternative, showing more than the curated `featuredPhotos` set in
-Looks Check. **Not a cut:** Men/Kids/Beauty/Accessories/Home & Living —
+pricing display, an open-ended chatbot interface, **any alternative product
+inside Worth It, in any state — this is a hard rule now, not a "usually
+one" rule** (§6), showing more than the curated `featuredPhotos` set in
+Looks Check, fake urgency/scarcity language of any kind (§10), per-shopper
+personalization referencing individual order history (real upgrade path,
+not part of this MVP — this spec's Quick Check data is per-product, not
+per-shopper). **Not a cut:** Men/Kids/Beauty/Accessories/Home & Living —
 these are in scope per §3a's department tiering; this line previously said
 otherwise from an earlier draft and is superseded by §3a.
 
 ## 16. Acceptance criteria
 - App runs end-to-end with zero API keys set (fallback why-lines used).
 - Wishlist shows both eligible and ineligible items by design.
-- All three checks produce a verdict consistent with the deterministic data
+- Every check shown is one that genuinely applies to that product per §5a
+  — never a greyed-out row for a check that structurally can't apply.
+- Fit verdicts are correct per selected size, not a single flattened
+  verdict for the whole product.
+- Worth It never shows an alternative product or a second Add to Bag, in
+  any state, for any department — this is the single most important
+  functional check, since violating it undermines the project's actual
+  success metric.
+- All checks produce a verdict consistent with the deterministic data
   regardless of AI availability; only the why-line's exact wording changes.
-- Worth It surfaces an alternative only when §6's thresholds are actually
-  met, and always exactly one.
+- No third-party attribution language ("buyers say") anywhere — every
+  claim is stated as a direct fact.
+- No fake urgency/scarcity language anywhere.
 - Looks Check never shows more than its curated photo set.
 - No banned/technical words appear in any shopper-facing string, in
   fallback or AI-generated copy.

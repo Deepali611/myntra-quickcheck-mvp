@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server';
 import { callGroqAPI } from '../../../lib/groqClient.js';
+import { getLooksFallbackWhy } from '../../../lib/fallbackCopy.js';
 
-export function getLooksFallbackWhy(looks, department) {
-  if (!looks || looks.confidence === 'low') {
-    return "Not enough buyer photos yet for this item.";
-  }
-
-  if (!looks.flaggedAttribute) {
-    if (['Beauty', 'Accessories', 'HomeLiving', 'Home & Living'].includes(department)) {
-      return "Material and finish matched the photos for most buyers.";
-    }
-    return "Colour, print and fabric all matched the photos.";
-  }
-
-  const attr = looks.flaggedAttribute.charAt(0).toUpperCase() + looks.flaggedAttribute.slice(1);
-  return `${attr} was slightly different from the photos for some buyers.`;
-}
+export { getLooksFallbackWhy };
 
 export async function POST(request) {
   try {
@@ -30,18 +17,18 @@ export async function POST(request) {
       return NextResponse.json({ why: fallbackWhy, source: 'fallback' });
     }
 
-    const systemPrompt = `You are a helpful retail product guide. Translate the given looks verdict into one short, natural sentence (10-16 words) explaining why to a shopper. Ground strictly in the given facts. Do NOT invent new facts. Do NOT use banned words: score, confidence, signal, evidence, synthesized, algorithm, data, reviews, or percentages. Use 'buyers' or 'most buyers'.`;
+    const systemPrompt = `You are a retail product guide. State looks/photo accuracy facts directly and confidently without third-party attribution. Do NOT use: "buyers say", "most buyers", "shoppers found", "reviews mention", "reviews say", score, confidence, signal, evidence, synthesized, algorithm, data, or percentages. Write one natural 8-14 word sentence.`;
 
-    const userPrompt = `Product department: ${department || 'Apparel'}. Looks verdict: ${looks.flaggedAttribute ? `flagged difference in ${looks.flaggedAttribute}` : 'looks as expected, photos match'}. Write one natural why-line sentence for a shopper.`;
+    const userPrompt = `Looks verdict for ${department || 'product'}: attribute=${looks.attribute}, direction=${looks.direction}. Write one direct why-line sentence.`;
 
     const aiWhy = await callGroqAPI('GROQ_API_KEY_LOOKS', systemPrompt, userPrompt);
 
-    if (aiWhy) {
+    if (aiWhy && !aiWhy.toLowerCase().includes('buyer') && !aiWhy.toLowerCase().includes('shopper')) {
       return NextResponse.json({ why: aiWhy, source: 'ai' });
     }
 
     return NextResponse.json({ why: fallbackWhy, source: 'fallback' });
   } catch (err) {
-    return NextResponse.json({ why: "Not enough buyer photos yet for this item.", source: 'fallback' });
+    return NextResponse.json({ why: 'Not enough photo signal yet for this item.', source: 'fallback' });
   }
 }

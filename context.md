@@ -72,7 +72,9 @@ seconds, inside the wishlist, without leaving the shopping journey. Three
 checks:
 - **Fit Check** — "Will it fit?"
 - **Looks Check** — "Will it look as expected?"
-- **Worth It** — "Is there a better pick?"
+- **Worth It** — "Is this a good pick?" (a confirmation of the shopper's
+  own choice, backed by one real fact — never a comparison to a different
+  product; see principle 5 below)
 
 This is not an AI dashboard, not a chatbot, not a review-analysis screen,
 not a recommendation feed. The AI/data methodology is implementation
@@ -80,33 +82,40 @@ machinery — it must never feel like an AI product to the shopper.
 
 ## Core user journey
 Home → browse → product → Wishlist → Quick Check → resolve doubt → decision
-→ PDP / alternative → Add to Bag → Bag. This should feel like one continuous
-shopping journey, not a separate tool bolted onto Myntra.
+→ Add to Bag → Bag. This should feel like one continuous shopping journey,
+not a separate tool bolted onto Myntra.
 
 ## Key product principles
 1. **Verdict first, always.** The shopper gets an answer in ~4 words before
    anything else. Everything past that is optional depth for a shopper who
    pauses.
-2. **One visual per check, always tappable.** The visual is not decoration —
-   tapping it reveals real underlying evidence (a size chart, a full photo
-   viewer, a real alternative PDP), never a bigger version of the summary.
+2. **One visual per check, always tappable (Fit/Looks).** The visual is not
+   decoration — tapping it reveals real underlying evidence (a size chart,
+   a full photo viewer), never a bigger version of the summary. Worth It
+   has no such destination, since it never points anywhere but the
+   shopper's own pick — see principle 5.
 3. **No internal/technical language ever reaches the shopper.** No "score,"
    "confidence," "signal," "evidence," "synthesized," "algorithm," or naming
-   "reviews" as a source. See architecture.md for the full banned-word list
-   and copy templates.
+   "reviews" as a source. Also no third-party attribution ("buyers say," —
+   state facts directly instead) and no fabricated urgency/scarcity. See
+   architecture.md for the full banned-word list and copy templates.
 4. **Honesty over polish.** Every check has a genuine "not enough data"
    state. The UI never fabricates certainty, headcounts, or guarantees that
    the underlying synthetic data can't support.
-5. **Exactly one alternative in Worth It, never a list.** More than one
-   turns a quick nudge into a browsing session, which works against the
-   entire premise.
+5. **Worth It is always a confirmation, never a comparison to switch
+   products.** Showing a different product with its own Add to Bag would
+   directly undermine this project's actual success metric — purchase of
+   the wishlisted item specifically — since convincing a shopper to buy
+   something else instead is not a win for what's being measured. Worth It
+   states one real comparative fact about the shopper's own pick and stops
+   there.
 6. **Add, don't redesign.** The rest of the shopping experience (Home,
    Category, Search, PDP, Bag) stays realistic and complete. Quick Check is
    a layer on the existing Wishlist, not a separate product.
 7. **Deterministic verdict, live-AI phrasing.** What the answer IS (fit
-   zone/direction, looks attribute/direction, whether a worth-it alternative
-   qualifies) is always computed deterministically from per-product data —
-   this must be reliable and identical every time, regardless of API
+   zone/direction per size, looks attribute/direction, the Worth It
+   comparative fact) is always computed deterministically from per-product
+   data — this must be reliable and identical every time, regardless of API
    availability. HOW it's phrased to the shopper is generated live by Groq,
    grounded strictly in that deterministic verdict, with a hand-written
    template used as a graceful fallback whenever the API is unavailable.

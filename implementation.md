@@ -45,11 +45,17 @@ department-appropriate pricing, and the department/quickCheckTier fields —
 matched to what each image actually shows, never the reverse.
 `lib/catalog.js`, `lib/sizing.js`.
 **Checkpoint:** every product's discount math reconciles; sizing rules
-return correct arrays per garment type/department; spot-check a sample of
-products in each department to confirm each image actually matches its own
-name/colour/garment fields — no product shows a mismatched colour or
-garment type from what its text says. Confirm all seven departments have
-real, non-empty product listings (§3a's acceptance criterion).
+return correct arrays per garment type/department. **Review by subcategory
+group, not a random product sample** — this is a stronger and more
+tractable check than spot-checking individual products: open
+`image-sources.json`, group by subcategory (e.g. all "Kurta Sets" entries,
+all "Bedsheets" entries, all "T-Shirts" entries), and confirm every
+subcategory group's `matchedKeyword` and actual downloaded image genuinely
+match that subcategory — one wrong image in a subcategory usually means
+the search query for that whole subcategory was weak, so checking by group
+catches systematic mismatches a random sample would likely miss entirely.
+Confirm all seven departments have real, non-empty product listings (§3a's
+acceptance criterion).
 
 ### Phase 2 — Quick Check data (category-aware)
 `lib/categoryAdapters.js` — implements the department → vocabulary/Layer-4
@@ -125,7 +131,12 @@ Homeliving, Footwear, Accessories) must all link to real, populated
 category listings — none should lead to an empty page.
 **Checkpoint:** browsing Home → Category → Search shows real catalogue
 products consistently; clicking into every department tile shows real
-products, not an empty state.
+products, not an empty state. **Visual fidelity self-check (architecture.md
+§10a, mandatory):** compare against the reference screenshots element by
+element — typography (Roboto), icons, tile images, spacing, colour, card
+styling. List any deviation found and fix it before reporting this phase
+complete. A phase that works functionally but doesn't visually match fails
+this checkpoint.
 
 ### Phase 8 — PDP
 `Product.jsx` — full-bleed, image, price/discount, colour swatches, size
@@ -133,14 +144,18 @@ selector (per department's sizing rules, §4 — no size selector shown for
 departments that don't need one), product details, similar products rail,
 Buy Now/Add to Bag wired to the real store.
 **Checkpoint:** every product card leads to a working PDP with real Add to
-Bag behavior, across at least one product from each department.
+Bag behavior, across at least one product from each department. **Visual
+fidelity self-check (architecture.md §10a, mandatory):** same element-by-
+element comparison against the reference PDP screenshots before reporting
+complete.
 
 ### Phase 9 — Bag & Wishlist
 `Bag.jsx`, `Checkout.jsx`. `Wishlist.jsx` per architecture.md §11, wired to
 real state and seed data, with the Quick Check entry point on eligible
 cards only. Seed wishlist items should include at least one product from a
 Tier 2 department, not only Tier 1 clothing/footwear.
-**Checkpoint:** Wishlist matches reference screenshots visually; Quick Check
+**Checkpoint:** Wishlist matches reference screenshots visually (§10a
+element-by-element self-check, mandatory, same as Phase 7); Quick Check
 entry points appear only on eligible items, driven by real state; the
 Tier 2 seeded item's Quick Check reflects that department's adapted
 meaning (§5a), not clothing-specific language.
@@ -159,6 +174,10 @@ Worth It adds the ORIGINAL item not the alternative. **Voice check (do not
 skip):** re-read every string shown, with and without AI keys set, against
 the banned-word list and the "would a shopper understand this without
 re-reading" test in context.md. Any violation fails this checkpoint.
+**Visual fidelity self-check (architecture.md §10a, mandatory):** the Quick
+Check sheet itself must also match Myntra's visual language (typography,
+icons, card styling) — this is a new UI surface, not exempt from §10a just
+because it's a new feature rather than an existing Myntra screen.
 
 ### Phase 11 — Polish & deployment readiness
 Toast confirmations on wishlist/bag actions. Visual QA against reference
