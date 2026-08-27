@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { getAllProducts } from '../../lib/catalog.js';
+import ProductCard from '../../components/ProductCard.jsx';
 
 const DEPARTMENTS = [
   { name: 'Fashion', path: '/c/women', img: '/products/w1.jpg' },
@@ -31,6 +33,9 @@ const BRAND_DEALS = [
 ];
 
 export default function HomePage() {
+  const allProducts = getAllProducts();
+  const featuredProducts = allProducts.slice(0, 8);
+
   return (
     <div style={{ paddingBottom: '24px' }}>
       {/* Department Circle Rail with Verified Real Product Photography */}
@@ -94,6 +99,20 @@ export default function HomePage() {
               <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#282c3f', marginTop: '2px' }}>{deal.brand}</div>
               <div style={{ fontSize: '12px', color: '#ff3f6c', fontWeight: 'bold', marginTop: '4px' }}>{deal.title}</div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured Catalogue Product Grid */}
+      <div style={{ backgroundColor: '#ffffff', padding: '16px 12px', marginTop: '8px' }}>
+        <div className="section-title">Trending Now</div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '10px'
+        }}>
+          {featuredProducts.map(product => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>
