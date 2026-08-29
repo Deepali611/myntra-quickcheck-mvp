@@ -1,88 +1,84 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 export default function FitCheckCard({ product, data, selectedSize, onSelectSize, onOpenLayer4, onAddToBag }) {
-  const [whyLine, setWhyLine] = useState('');
-  const [loadingWhy, setLoadingWhy] = useState(false);
+  const isFootwear = product?.department === 'Footwear';
 
   const sizes = product?.sizes && product.sizes.length > 0 
     ? product.sizes 
-    : (product?.department === 'Footwear' ? ['6', '7', '8', '9', '10', '11'] : ['XS', 'S', 'M', 'L', 'XL', 'XXL']);
+    : (isFootwear ? ['6', '7', '8', '9', '10', '11'] : ['XS', 'S', 'M', 'L', 'XL', 'XXL']);
 
   const currentFit = data?.fit ? data.fit[selectedSize] : null;
 
-  useEffect(() => {
-    let isMounted = true;
-    setLoadingWhy(true);
-
-    async function fetchWhy() {
-      try {
-        const res = await fetch('/api/fit-check-why', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fit: currentFit,
-            department: product?.department,
-            garmentType: product?.garmentType,
-            size: selectedSize
-          })
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (isMounted && json.why) {
-            setWhyLine(json.why);
-            setLoadingWhy(false);
-            return;
-          }
-        }
-      } catch (err) {
-        // fallback handles error
-      }
-
-      if (isMounted) {
-        if (!currentFit) {
-          setWhyLine(`Not enough to say for ${selectedSize} yet.`);
-        } else if (currentFit.status === 'true') {
-          setWhyLine(`Fits true to size in ${selectedSize}. Standard measurements match this garment.`);
-        } else if (currentFit.sizeAccuracy === 'small') {
-          setWhyLine(`Runs small in size ${selectedSize}. We recommend choosing half a size larger for comfort.`);
-        } else if (currentFit.top && currentFit.bottom) {
-          setWhyLine(`Runs ${currentFit.top.direction} on top chest, and ${currentFit.bottom.direction} on bottom length.`);
-        } else if (currentFit.direction && currentFit.zone) {
-          setWhyLine(`Runs ${currentFit.direction} at ${currentFit.zone} in size ${selectedSize}.`);
-        } else {
-          setWhyLine(`Fits true to size in ${selectedSize}.`);
-        }
-        setLoadingWhy(false);
-      }
+  // Exact Phase 10b Copy Mapping
+  const getCopy = () => {
+    // 1. Fallback Case (no data for that size)
+    if (!currentFit) {
+      return {
+        headline: `Not enough to say for ${selectedSize} yet`,
+        subline: `Check the size chart before you buy.`,
+        isFallback: true,
+        flaggedZone: null
+      };
     }
 
-    fetchWhy();
+    // 2. True to Size Case
+    if (currentFit.status === 'true') {
+      return {
+        headline: `True to size in ${selectedSize}`,
+        subline: `Fits just right — no adjustments needed.`,
+        isFallback: false,
+        flaggedZone: null
+      };
+    }
 
-    return () => { isMounted = false; };
-  }, [selectedSize, currentFit, product]);
+    // 3. Footwear Flagged Case
+    if (isFootwear) {
+      const isSmall = currentFit.sizeAccuracy === 'small';
+      return {
+        headline: isSmall ? `Runs a little small — go half a size up` : `Runs a little large — consider sizing down`,
+        subline: `Size accuracy: ${currentFit.sizeAccuracy} | Width: ${currentFit.width === 'true' ? 'Standard' : 'Wide'}`,
+        isFallback: false,
+        flaggedZone: 'footwear_length'
+      };
+    }
 
-  const getHeadline = () => {
-    if (!currentFit) return `Not enough to say for ${selectedSize} yet`;
-    if (currentFit.status === 'true') return `True to size in ${selectedSize}`;
-    if (currentFit.sizeAccuracy === 'small') return `Runs small — go size up`;
-    if (currentFit.sizeAccuracy === 'large') return `Runs large — go size down`;
+    // 4. Apparel Multi-piece / Single-piece Flagged Case
     if (currentFit.top && currentFit.bottom) {
-      return `Runs ${currentFit.top.direction} on top, ${currentFit.bottom.direction} on bottom`;
+      return {
+        headline: `Runs ${currentFit.top.direction} on top, ${currentFit.bottom.direction} on the bottoms`,
+        subline: `Consider sizing down on top and a longer inseam if available.`,
+        isFallback: false,
+        flaggedZone: 'top_chest'
+      };
     }
+
     if (currentFit.direction && currentFit.zone) {
-      return `Runs ${currentFit.direction} at ${currentFit.zone}`;
+      return {
+        headline: `Runs ${currentFit.direction} at ${currentFit.zone}`,
+        subline: `Adjust size for ${currentFit.zone} fit preference.`,
+        isFallback: false,
+        flaggedZone: currentFit.zone
+      };
     }
-    return `True to size in ${selectedSize}`;
+
+    return {
+      headline: `True to size in ${selectedSize}`,
+      subline: `Fits just right — no adjustments needed.`,
+      isFallback: false,
+      flaggedZone: null
+    };
   };
+
+  const copyInfo = getCopy();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Size Selector Chips */}
       <div>
         <div style={{ fontSize: '11px', fontWeight: '700', color: '#94969f', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
-          Select Size ({product?.department === 'Footwear' ? 'UK Size' : 'Garment Size'}):
+          Select Size ({isFootwear ? 'UK Size' : 'Garment Size'}):
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {sizes.map(sz => {
@@ -99,7 +95,8 @@ export default function FitCheckCard({ product, data, selectedSize, onSelectSize
                   color: isSelected ? '#ff3f6c' : '#282c3f',
                   fontWeight: isSelected ? '700' : '500',
                   fontSize: '12px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 {sz}
@@ -110,16 +107,50 @@ export default function FitCheckCard({ product, data, selectedSize, onSelectSize
       </div>
 
       {/* Fit Verdict Card */}
-      <div style={{ backgroundColor: '#f9f9fa', border: '1px solid #eaeaec', borderRadius: '14px', padding: '16px' }}>
-        <div style={{ fontSize: '11px', fontWeight: '700', color: '#535766', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+      <div style={{ 
+        backgroundColor: copyInfo.isFallback ? '#f5f5f6' : '#f9f9fa', 
+        border: copyInfo.isFallback ? '1px solid #d4d5d9' : '1px solid #eaeaec', 
+        borderRadius: '14px', 
+        padding: '16px' 
+      }}>
+        <div style={{ fontSize: '11px', fontWeight: '700', color: copyInfo.isFallback ? '#94969f' : '#ff3f6c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
           Size {selectedSize} Fit Verdict
         </div>
-        <div style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f', marginBottom: '6px' }}>
-          {getHeadline()}
+        <div style={{ fontSize: '15px', fontWeight: '700', color: '#282c3f', marginBottom: '6px' }}>
+          {copyInfo.headline}
         </div>
         <div style={{ fontSize: '12px', color: '#535766', lineHeight: '1.4' }}>
-          {loadingWhy ? 'Analyzing size measurements...' : whyLine}
+          {copyInfo.subline}
         </div>
+
+        {/* Zone-Scoped Fit Slider Visual */}
+        {!copyInfo.isFallback && (
+          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #eaeaec' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94969f', fontWeight: '600', marginBottom: '4px' }}>
+              <span>{isFootwear ? 'Tight / Small' : 'Snug / Tight'}</span>
+              <span style={{ color: '#ff3f6c', fontWeight: '700' }}>
+                {isFootwear ? 'Standard Width' : (copyInfo.flaggedZone ? copyInfo.flaggedZone.toUpperCase() : 'IDEAL')}
+              </span>
+              <span>{isFootwear ? 'Loose / Large' : 'Loose / Long'}</span>
+            </div>
+            <div style={{ position: 'relative', height: '6px', backgroundColor: '#eaeaec', borderRadius: '3px' }}>
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  top: '-4px', 
+                  left: copyInfo.headline.includes('loose') || copyInfo.headline.includes('large') ? '80%' : (copyInfo.headline.includes('small') || copyInfo.headline.includes('short') ? '20%' : '50%'),
+                  transform: 'translateX(-50%)',
+                  width: '14px', 
+                  height: '14px', 
+                  backgroundColor: '#ff3f6c', 
+                  borderRadius: '50%',
+                  border: '2px solid #ffffff',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                }} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tappable Visual & Layer 4 launcher */}
@@ -146,7 +177,7 @@ export default function FitCheckCard({ product, data, selectedSize, onSelectSize
         <span style={{ fontSize: '16px', color: '#ff3f6c', fontWeight: 'bold' }}>View ›</span>
       </div>
 
-      {/* Action Button */}
+      {/* Action Button: Carries Selected Size */}
       <button
         onClick={onAddToBag}
         style={{
@@ -160,7 +191,8 @@ export default function FitCheckCard({ product, data, selectedSize, onSelectSize
           fontWeight: '700',
           letterSpacing: '0.5px',
           cursor: 'pointer',
-          marginTop: '4px'
+          marginTop: '4px',
+          boxShadow: '0 4px 12px rgba(255, 63, 108, 0.3)'
         }}
       >
         ADD TO BAG — SIZE {selectedSize}
