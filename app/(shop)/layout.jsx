@@ -1,7 +1,8 @@
 'use client';
 
+import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAppStore } from '../../state/store.jsx';
 import { 
   SearchIcon, 
@@ -13,11 +14,14 @@ import {
   HomeIcon, 
   FwdIcon, 
   MnowIcon, 
-  LuxeIcon 
+  LuxeIcon,
+  ProfileIcon
 } from '../../components/Icons.jsx';
 
-export default function ShopLayout({ children }) {
+function ShopLayoutContent({ children }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams ? searchParams.get('tab') : null;
   const { state } = useAppStore();
 
   const wishlistCount = state?.wishlist ? state.wishlist.length : 0;
@@ -35,7 +39,7 @@ export default function ShopLayout({ children }) {
           <span className="chevron">▼</span>
         </div>
 
-        {/* Primary Search Header Row */}
+        {/* Primary Search Header Row: Exactly Bell, Wishlist Heart, Profile (NO Bag icon in top header!) */}
         <div className="search-header-row">
           <Link href="/" className="brand-logo-btn" title="Myntra Home">
             <img src="/myntra-logo.png" alt="Myntra Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -54,20 +58,22 @@ export default function ShopLayout({ children }) {
           </Link>
 
           <div className="header-icon-actions">
-            <Link href="/wishlist" className="icon-btn" title="Wishlist">
-              <HeartIcon size={21} color="#282c3f" />
+            <Link href="/notifications" className="icon-btn" title="Notifications">
+              <BellIcon size={20} color="#282c3f" />
+            </Link>
+            <Link href="/wishlist" className="icon-btn" title="Wishlist" style={{ position: 'relative' }}>
+              <HeartIcon size={20} color="#282c3f" />
               {wishlistCount > 0 && <span className="badge-count">{wishlistCount}</span>}
             </Link>
-            <Link href="/bag" className="icon-btn" title="Shopping Bag">
-              <BagIcon size={20} color="#282c3f" />
-              {bagCount > 0 && <span className="badge-count">{bagCount}</span>}
+            <Link href="/account" className="icon-btn" title="Profile">
+              <ProfileIcon size={20} color="#282c3f" />
             </Link>
           </div>
         </div>
 
         {/* Sub-nav Category Tabs */}
         <nav className="category-tab-rail">
-          <Link href="/" className={`category-tab-item ${pathname === '/' ? 'active' : ''}`}>
+          <Link href="/" className={`category-tab-item ${pathname === '/' && !activeTab ? 'active' : ''}`}>
             ALL
           </Link>
           <Link href="/c/men" className={`category-tab-item ${pathname.includes('/c/men') ? 'active' : ''}`}>
@@ -99,23 +105,23 @@ export default function ShopLayout({ children }) {
         {children}
       </main>
 
-      {/* Shared Bottom Tab Bar (Fixed bottom) */}
+      {/* Shared Bottom Tab Bar (Fixed bottom — Bag icon lives HERE only!) */}
       <nav className="bottom-tab-bar">
-        <Link href="/" className={`tab-link ${pathname === '/' ? 'active' : ''}`}>
+        <Link href="/" className={`tab-link ${pathname === '/' && !activeTab ? 'active' : ''}`}>
           <span className="tab-icon"><HomeIcon size={20} /></span>
           <span>Home</span>
         </Link>
-        <Link href="#" className="tab-link">
+        <Link href="/?tab=fwd" className={`tab-link ${activeTab === 'fwd' ? 'active' : ''}`}>
           <span className="tab-icon"><FwdIcon size={20} /></span>
           <span>fwd</span>
           <span className="tab-subtext">Under ₹999</span>
         </Link>
-        <Link href="#" className="tab-link">
+        <Link href="/?tab=mnow" className={`tab-link ${activeTab === 'mnow' ? 'active' : ''}`}>
           <span className="tab-icon"><MnowIcon size={20} /></span>
           <span>mnow</span>
           <span className="tab-subtext">From 30 min</span>
         </Link>
-        <Link href="#" className="tab-link">
+        <Link href="/?tab=luxe" className={`tab-link ${activeTab === 'luxe' ? 'active' : ''}`}>
           <span className="tab-icon"><LuxeIcon size={20} /></span>
           <span>LUXE</span>
           <span className="tab-subtext">Luxury</span>
@@ -127,5 +133,13 @@ export default function ShopLayout({ children }) {
         </Link>
       </nav>
     </div>
+  );
+}
+
+export default function ShopLayout({ children }) {
+  return (
+    <Suspense fallback={<div>{children}</div>}>
+      <ShopLayoutContent>{children}</ShopLayoutContent>
+    </Suspense>
   );
 }

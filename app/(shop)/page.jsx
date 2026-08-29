@@ -1,4 +1,8 @@
+'use client';
+
+import React, { Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { getAllProducts } from '../../lib/catalog.js';
 import ProductCard from '../../components/ProductCard.jsx';
 
@@ -32,7 +36,9 @@ const BRAND_DEALS = [
   { brand: 'Anouk', title: 'Flat 60% Off', bg: '#fffdf0', tag: 'Festive' }
 ];
 
-export default function HomePage() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const tab = searchParams ? searchParams.get('tab') : null;
   const allProducts = getAllProducts();
 
   const getDeptImage = (deptKey) => {
@@ -48,6 +54,63 @@ export default function HomePage() {
     );
     return p ? p.image : '/products/w1.jpg';
   };
+
+  // Re-use ProductCard grid with simple filters for bottom tabs!
+  if (tab === 'fwd') {
+    const fwdProducts = allProducts
+      .filter(p => (p.salePrice || p.price || 0) <= 999)
+      .sort((a, b) => (a.salePrice || a.price || 0) - (b.salePrice || b.price || 0));
+
+    return (
+      <div style={{ padding: '12px 12px 24px 12px', backgroundColor: '#ffffff' }}>
+        <div style={{ padding: '12px 14px', backgroundColor: '#fff0f3', borderRadius: '8px', marginBottom: '14px', border: '1px solid #ffd8e0' }}>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: '#ff3f6c' }}>fwd — Under ₹999 Trendstation</div>
+          <div style={{ fontSize: '11px', color: '#535766', marginTop: '2px' }}>Gen-Z styles sorted by price low to high ({fwdProducts.length} items)</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          {fwdProducts.map(prod => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === 'mnow') {
+    return (
+      <div style={{ padding: '12px 12px 24px 12px', backgroundColor: '#ffffff' }}>
+        <div style={{ padding: '12px 14px', backgroundColor: '#e6f9f5', borderRadius: '8px', marginBottom: '14px', border: '1px solid #b3f0e5' }}>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: '#03a685' }}>mnow — 30 Minute Express Store</div>
+          <div style={{ fontSize: '11px', color: '#535766', marginTop: '2px' }}>Fast delivery items near Kalyan & Thane ({allProducts.length} items)</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          {allProducts.map(prod => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === 'luxe') {
+    const luxeProducts = allProducts
+      .filter(p => (p.salePrice || p.price || 0) >= 1500)
+      .sort((a, b) => (b.salePrice || b.price || 0) - (a.salePrice || a.price || 0));
+
+    return (
+      <div style={{ padding: '12px 12px 24px 12px', backgroundColor: '#ffffff' }}>
+        <div style={{ padding: '12px 14px', backgroundColor: '#282c3f', color: '#ffffff', borderRadius: '8px', marginBottom: '14px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '800', color: '#ff3f6c' }}>LUXE — Premium Luxury Collections</div>
+          <div style={{ fontSize: '11px', color: '#d4d5d9', marginTop: '2px' }}>Curated high-end fashion and designer labels ({luxeProducts.length} items)</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          {luxeProducts.map(prod => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const featuredProducts = allProducts.slice(0, 8);
 
@@ -132,5 +195,13 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '24px', textAlign: 'center' }}>Loading Myntra...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
