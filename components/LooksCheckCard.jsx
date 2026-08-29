@@ -46,18 +46,71 @@ export default function LooksCheckCard({ product, data, onOpenLayer4, onAddToBag
     return 'none';
   };
 
-  // Swatch colors showing visual agreement
+  // Dynamic Product Swatches based on product's actual shade and lighting shift
   const getSwatches = () => {
+    const name = (product?.name || '').toLowerCase();
+    const colors = [
+      { k: 'black', hex: '#242424', lightHex: '#4a4a4a', warmHex: '#3a3328', deepHex: '#111111', name: 'Black' },
+      { k: 'navy', hex: '#1b2a4a', lightHex: '#2d4474', warmHex: '#2b334d', deepHex: '#0e172a', name: 'Navy' },
+      { k: 'blue', hex: '#2563eb', lightHex: '#60a5fa', warmHex: '#3b82f6', deepHex: '#1d4ed8', name: 'Blue' },
+      { k: 'red', hex: '#b91c1c', lightHex: '#ef4444', warmHex: '#c2410c', deepHex: '#7f1d1d', name: 'Red' },
+      { k: 'maroon', hex: '#800020', lightHex: '#a31d36', warmHex: '#9a3412', deepHex: '#580c1f', name: 'Maroon' },
+      { k: 'wine', hex: '#722f37', lightHex: '#9b434e', warmHex: '#8b3a3a', deepHex: '#4a151b', name: 'Wine' },
+      { k: 'green', hex: '#15803d', lightHex: '#22c55e', warmHex: '#4d7c0f', deepHex: '#14532d', name: 'Green' },
+      { k: 'olive', hex: '#556b2f', lightHex: '#6b8e23', warmHex: '#78716c', deepHex: '#3d4f1f', name: 'Olive' },
+      { k: 'yellow', hex: '#ca8a04', lightHex: '#facc15', warmHex: '#ea580c', deepHex: '#a16207', name: 'Yellow' },
+      { k: 'mustard', hex: '#d97706', lightHex: '#f59e0b', warmHex: '#b45309', deepHex: '#92400e', name: 'Mustard' },
+      { k: 'orange', hex: '#ea580c', lightHex: '#fb923c', warmHex: '#c2410c', deepHex: '#9a3412', name: 'Orange' },
+      { k: 'rust', hex: '#b7410e', lightHex: '#d95d24', warmHex: '#a13b0c', deepHex: '#7c2d12', name: 'Rust' },
+      { k: 'pink', hex: '#db2777', lightHex: '#f472b6', warmHex: '#fb7185', deepHex: '#9d174d', name: 'Pink' },
+      { k: 'peach', hex: '#f87171', lightHex: '#fca5a5', warmHex: '#fb923c', deepHex: '#dc2626', name: 'Peach' },
+      { k: 'purple', hex: '#7e22ce', lightHex: '#a855f7', warmHex: '#86198f', deepHex: '#581c87', name: 'Purple' },
+      { k: 'lavender', hex: '#8b5cf6', lightHex: '#c4b5fd', warmHex: '#a78bfa', deepHex: '#6d28d9', name: 'Lavender' },
+      { k: 'brown', hex: '#78350f', lightHex: '#a16207', warmHex: '#92400e', deepHex: '#451a03', name: 'Brown' },
+      { k: 'beige', hex: '#c5a880', lightHex: '#e2d4be', warmHex: '#b89467', deepHex: '#997b53', name: 'Beige' },
+      { k: 'grey', hex: '#64748b', lightHex: '#94a3b8', warmHex: '#78716c', deepHex: '#334155', name: 'Grey' },
+      { k: 'white', hex: '#f1f5f9', lightHex: '#ffffff', warmHex: '#fef3c7', deepHex: '#e2e8f0', name: 'Off-White' },
+      { k: 'teal', hex: '#0f766e', lightHex: '#14b8a6', warmHex: '#0d9488', deepHex: '#115e59', name: 'Teal' },
+      { k: 'gold', hex: '#d97706', lightHex: '#fbbf24', warmHex: '#b45309', deepHex: '#92400e', name: 'Gold' }
+    ];
+
+    let matched = colors.find(c => name.includes(c.k));
+    if (!matched) {
+      // Deterministic palette per product id hash
+      const hash = (product?.id || 'p1').split('').reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) | 0, 0);
+      matched = colors[Math.abs(hash) % colors.length];
+    }
+
     if (direction === 'lighter') {
-      return { asShown: '#88304e', asWorn: '#b55877', labelShown: 'Studio (Base)', labelWorn: 'As Worn (Lighter)' };
+      return {
+        asShown: matched.hex,
+        asWorn: matched.lightHex,
+        labelShown: `Studio (${matched.name})`,
+        labelWorn: `As Worn (Lighter ${matched.name})`
+      };
     }
     if (direction === 'warmer') {
-      return { asShown: '#2c4a6f', asWorn: '#5a5438', labelShown: 'Studio (Cool)', labelWorn: 'As Worn (Warmer)' };
+      return {
+        asShown: matched.hex,
+        asWorn: matched.warmHex,
+        labelShown: `Studio (Cool ${matched.name})`,
+        labelWorn: `As Worn (Warmer ${matched.name})`
+      };
     }
     if (direction === 'deeper') {
-      return { asShown: '#d64562', asWorn: '#9e1b36', labelShown: 'Digital Preview', labelWorn: 'As Worn (Deeper)' };
+      return {
+        asShown: matched.hex,
+        asWorn: matched.deepHex,
+        labelShown: `Digital (${matched.name})`,
+        labelWorn: `As Worn (Deeper ${matched.name})`
+      };
     }
-    return { asShown: '#c85a54', asWorn: '#c85a54', labelShown: 'Studio', labelWorn: 'As Worn (Exact Match)' };
+    return {
+      asShown: matched.hex,
+      asWorn: matched.hex,
+      labelShown: `Studio (${matched.name})`,
+      labelWorn: `As Worn (Exact Match)`
+    };
   };
 
   const swatches = getSwatches();
