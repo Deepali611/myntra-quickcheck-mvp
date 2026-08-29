@@ -29,9 +29,9 @@ export default function ProductDetailPage({ params }) {
           <BagIcon size={36} color="#94969f" />
         </div>
         <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Product Not Found</h2>
-        <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px' }}>The requested product does not exist in the catalogue.</p>
+        <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px' }}>We couldn't find this item. Explore more popular styles on Home.</p>
         <Link href="/" style={{ display: 'inline-block', marginTop: '16px', backgroundColor: '#ff3f6c', color: '#ffffff', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none', fontSize: '12px', fontWeight: '700' }}>
-          Back to Home
+          Explore Trending Styles
         </Link>
       </div>
     );

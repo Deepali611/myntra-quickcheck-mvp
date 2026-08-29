@@ -23,18 +23,18 @@ export default function LooksCheckCard({ product, data, onOpenLayer4, onAddToBag
 
   const getSubline = () => {
     if (direction === 'lighter') {
-      return 'Natural indoor and ambient lighting makes the material appear one shade lighter than studio flash photography.';
+      return 'Natural daylight and indoor lighting make the fabric look slightly lighter than studio flash photos.';
     }
     if (direction === 'warmer') {
-      return 'Daylight and warm ambient lighting brings out rich golden undertones slightly warmer than catalogue lighting.';
+      return 'Daylight and indoor lighting bring out warm, rich undertones slightly warmer than studio photos.';
     }
     if (direction === 'smaller') {
-      return 'Print pattern motif scale is slightly finer in person than close-up macro photography.';
+      return 'Print and pattern motifs appear slightly smaller and subtler in person than in close-up photos.';
     }
     if (direction === 'deeper') {
-      return 'Pigment applies with rich full coverage, appearing slightly deeper in tone than digital preview.';
+      return 'Applies with rich full coverage, looking slightly deeper in shade than on screen.';
     }
-    return 'Fabric texture, colour tone, and print scale align consistently with catalogue photos.';
+    return 'Fabric texture, colour shade, and print look consistent with the photos.';
   };
 
   // Visual filter matching the claim
@@ -49,34 +49,38 @@ export default function LooksCheckCard({ product, data, onOpenLayer4, onAddToBag
   // Dynamic Product Swatches based on product's actual shade and lighting shift
   const getSwatches = () => {
     const name = (product?.name || '').toLowerCase();
+    const photoCaptions = (product?.customerPhotos || []).map(cp => cp.caption || '').join(' ').toLowerCase();
+    const fullText = `${name} ${photoCaptions} ${(product?.subcategory || '')}`.toLowerCase();
+
     const colors = [
-      { k: 'black', hex: '#242424', lightHex: '#4a4a4a', warmHex: '#3a3328', deepHex: '#111111', name: 'Black' },
-      { k: 'navy', hex: '#1b2a4a', lightHex: '#2d4474', warmHex: '#2b334d', deepHex: '#0e172a', name: 'Navy' },
+      { k: 'striped', hex: '#3b82f6', lightHex: '#93c5fd', warmHex: '#60a5fa', deepHex: '#1d4ed8', name: 'Sky Blue & White' },
+      { k: 'light blue', hex: '#38bdf8', lightHex: '#bae6fd', warmHex: '#7dd3fc', deepHex: '#0284c7', name: 'Light Blue' },
+      { k: 'navy', hex: '#1b2a4a', lightHex: '#2d4474', warmHex: '#2b334d', deepHex: '#0e172a', name: 'Navy Blue' },
       { k: 'blue', hex: '#2563eb', lightHex: '#60a5fa', warmHex: '#3b82f6', deepHex: '#1d4ed8', name: 'Blue' },
-      { k: 'red', hex: '#b91c1c', lightHex: '#ef4444', warmHex: '#c2410c', deepHex: '#7f1d1d', name: 'Red' },
+      { k: 'rust', hex: '#b7410e', lightHex: '#d95d24', warmHex: '#a13b0c', deepHex: '#7c2d12', name: 'Rust Orange' },
+      { k: 'orange', hex: '#ea580c', lightHex: '#fb923c', warmHex: '#c2410c', deepHex: '#9a3412', name: 'Orange' },
+      { k: 'mustard', hex: '#d97706', lightHex: '#f59e0b', warmHex: '#b45309', deepHex: '#92400e', name: 'Mustard Yellow' },
+      { k: 'yellow', hex: '#ca8a04', lightHex: '#facc15', warmHex: '#ea580c', deepHex: '#a16207', name: 'Yellow' },
       { k: 'maroon', hex: '#800020', lightHex: '#a31d36', warmHex: '#9a3412', deepHex: '#580c1f', name: 'Maroon' },
       { k: 'wine', hex: '#722f37', lightHex: '#9b434e', warmHex: '#8b3a3a', deepHex: '#4a151b', name: 'Wine' },
+      { k: 'red', hex: '#b91c1c', lightHex: '#ef4444', warmHex: '#c2410c', deepHex: '#7f1d1d', name: 'Red' },
       { k: 'green', hex: '#15803d', lightHex: '#22c55e', warmHex: '#4d7c0f', deepHex: '#14532d', name: 'Green' },
       { k: 'olive', hex: '#556b2f', lightHex: '#6b8e23', warmHex: '#78716c', deepHex: '#3d4f1f', name: 'Olive' },
-      { k: 'yellow', hex: '#ca8a04', lightHex: '#facc15', warmHex: '#ea580c', deepHex: '#a16207', name: 'Yellow' },
-      { k: 'mustard', hex: '#d97706', lightHex: '#f59e0b', warmHex: '#b45309', deepHex: '#92400e', name: 'Mustard' },
-      { k: 'orange', hex: '#ea580c', lightHex: '#fb923c', warmHex: '#c2410c', deepHex: '#9a3412', name: 'Orange' },
-      { k: 'rust', hex: '#b7410e', lightHex: '#d95d24', warmHex: '#a13b0c', deepHex: '#7c2d12', name: 'Rust' },
       { k: 'pink', hex: '#db2777', lightHex: '#f472b6', warmHex: '#fb7185', deepHex: '#9d174d', name: 'Pink' },
       { k: 'peach', hex: '#f87171', lightHex: '#fca5a5', warmHex: '#fb923c', deepHex: '#dc2626', name: 'Peach' },
       { k: 'purple', hex: '#7e22ce', lightHex: '#a855f7', warmHex: '#86198f', deepHex: '#581c87', name: 'Purple' },
       { k: 'lavender', hex: '#8b5cf6', lightHex: '#c4b5fd', warmHex: '#a78bfa', deepHex: '#6d28d9', name: 'Lavender' },
-      { k: 'brown', hex: '#78350f', lightHex: '#a16207', warmHex: '#92400e', deepHex: '#451a03', name: 'Brown' },
+      { k: 'brown', hex: '#78350f', lightHex: '#a16207', warmHex: '#92400e', deepHex: '#451a03', name: 'Tan Brown' },
       { k: 'beige', hex: '#c5a880', lightHex: '#e2d4be', warmHex: '#b89467', deepHex: '#997b53', name: 'Beige' },
-      { k: 'grey', hex: '#64748b', lightHex: '#94a3b8', warmHex: '#78716c', deepHex: '#334155', name: 'Grey' },
-      { k: 'white', hex: '#f1f5f9', lightHex: '#ffffff', warmHex: '#fef3c7', deepHex: '#e2e8f0', name: 'Off-White' },
+      { k: 'gold', hex: '#d97706', lightHex: '#fbbf24', warmHex: '#b45309', deepHex: '#92400e', name: 'Gold' },
+      { k: 'white', hex: '#f1f5f9', lightHex: '#ffffff', warmHex: '#fef3c7', deepHex: '#e2e8f0', name: 'White' },
+      { k: 'black', hex: '#242424', lightHex: '#4a4a4a', warmHex: '#3a3328', deepHex: '#111111', name: 'Black' },
       { k: 'teal', hex: '#0f766e', lightHex: '#14b8a6', warmHex: '#0d9488', deepHex: '#115e59', name: 'Teal' },
-      { k: 'gold', hex: '#d97706', lightHex: '#fbbf24', warmHex: '#b45309', deepHex: '#92400e', name: 'Gold' }
+      { k: 'grey', hex: '#64748b', lightHex: '#94a3b8', warmHex: '#78716c', deepHex: '#334155', name: 'Grey' }
     ];
 
-    let matched = colors.find(c => name.includes(c.k));
+    let matched = colors.find(c => fullText.includes(c.k));
     if (!matched) {
-      // Deterministic palette per product id hash
       const hash = (product?.id || 'p1').split('').reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) | 0, 0);
       matched = colors[Math.abs(hash) % colors.length];
     }
@@ -93,7 +97,7 @@ export default function LooksCheckCard({ product, data, onOpenLayer4, onAddToBag
       return {
         asShown: matched.hex,
         asWorn: matched.warmHex,
-        labelShown: `Studio (Cool ${matched.name})`,
+        labelShown: `Studio (${matched.name})`,
         labelWorn: `As Worn (Warmer ${matched.name})`
       };
     }
@@ -101,7 +105,7 @@ export default function LooksCheckCard({ product, data, onOpenLayer4, onAddToBag
       return {
         asShown: matched.hex,
         asWorn: matched.deepHex,
-        labelShown: `Digital (${matched.name})`,
+        labelShown: `Screen (${matched.name})`,
         labelWorn: `As Worn (Deeper ${matched.name})`
       };
     }
