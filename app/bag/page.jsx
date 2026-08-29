@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '../../state/store.jsx';
+import { BackArrowIcon, ShieldCheckIcon, BagIcon } from '../../components/Icons.jsx';
 
 export default function BagPage() {
   const { state, dispatch } = useAppStore();
@@ -75,8 +76,8 @@ export default function BagPage() {
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link href="/" style={{ fontSize: '18px', color: '#282c3f', textDecoration: 'none' }}>
-            ←
+          <Link href="/" style={{ color: '#282c3f', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <BackArrowIcon size={20} color="#282c3f" strokeWidth={2.2} />
           </Link>
           <div>
             <h1 style={{ fontSize: '15px', fontWeight: '800', color: '#282c3f', margin: 0, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
@@ -88,8 +89,8 @@ export default function BagPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#03a685', fontWeight: '700' }}>
-          <span>🔒</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#03a685', fontWeight: '700' }}>
+          <ShieldCheckIcon size={14} color="#03a685" />
           <span>100% SECURE</span>
         </div>
       </header>
@@ -98,7 +99,9 @@ export default function BagPage() {
       <main className="scrollable-content" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
         {bagItems.length === 0 ? (
           <div style={{ padding: '60px 16px', textAlign: 'center', backgroundColor: '#ffffff', minHeight: '60vh' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🛍️</div>
+            <div style={{ width: '48px', height: '48px', margin: '0 auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BagIcon size={36} color="#94969f" />
+            </div>
             <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Hey, it feels so light!</h2>
             <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px', maxWidth: '240px', margin: '6px auto 0 auto' }}>
               There is nothing in your bag. Let’s add some items to it.

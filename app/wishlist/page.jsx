@@ -4,7 +4,20 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAppStore } from '../../state/store.jsx';
 import { isWishlistEligible } from '../../data/seedWishlist.js';
-import { BagIcon } from '../../components/Icons.jsx';
+import { 
+  BagIcon, 
+  BackArrowIcon,
+  EditListIcon,
+  LocationPinIcon,
+  CollectionsFilterIcon,
+  OutOfStockBoxIcon,
+  ChevronDownIcon,
+  StarIcon,
+  TrashIcon,
+  CollectionPlusIcon,
+  ShareIcon,
+  SimilarCardsIcon
+} from '../../components/Icons.jsx';
 import QuickCheckSheet from '../../components/QuickCheckSheet.jsx';
 
 export default function WishlistPage() {
@@ -118,7 +131,7 @@ export default function WishlistPage() {
         </div>
       )}
 
-      {/* Wishlist Header (Fix 1: Bell, Wishlist, Profile in shop header, Bag here with real count Fix 2) */}
+      {/* Wishlist Header */}
       <header style={{
         flexShrink: 0,
         zIndex: 100,
@@ -132,8 +145,8 @@ export default function WishlistPage() {
           padding: '12px 14px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link href="/" style={{ fontSize: '18px', color: '#282c3f', textDecoration: 'none' }}>
-              ←
+            <Link href="/" style={{ color: '#282c3f', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <BackArrowIcon size={20} color="#282c3f" strokeWidth={2.2} />
             </Link>
             <div>
               <h1 style={{ fontSize: '15px', fontWeight: '800', color: '#282c3f', margin: 0, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
@@ -147,7 +160,13 @@ export default function WishlistPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '16px', color: '#282c3f', cursor: 'pointer' }}>✏️</span>
+            <button 
+              onClick={() => showToast('Editing Wishlist')} 
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+              title="Edit List"
+            >
+              <EditListIcon size={19} color="#282c3f" />
+            </button>
             <Link href="/bag" style={{ textDecoration: 'none', position: 'relative', display: 'flex', alignItems: 'center' }}>
               <BagIcon size={20} color="#282c3f" />
               {bagCount > 0 && (
@@ -173,23 +192,23 @@ export default function WishlistPage() {
           </div>
         </div>
 
-        {/* Delivery Location Bar */}
+        {/* Delivery Location Bar (matching screenshot) */}
         <div style={{
-          backgroundColor: '#fff0f3',
+          backgroundColor: '#fbf4f6',
           padding: '8px 14px',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '8px',
           fontSize: '11px',
           color: '#282c3f',
           fontWeight: '500',
           borderTop: '1px solid #ffd8e0'
         }}>
-          <span style={{ color: '#ff3f6c' }}>📍</span>
+          <LocationPinIcon size={14} color="#ff3f6c" />
           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Deliver to: <b>Thane, Kalyan - 421301</b>
+            <b>Anupam Nagar Road</b> - Gauripada, Thane, Kalyan, 421301, Maha...
           </span>
-          <span style={{ fontSize: '9px', color: '#ff3f6c', fontWeight: '700' }}>CHANGE</span>
+          <ChevronDownIcon size={13} color="#282c3f" />
         </div>
       </header>
 
@@ -197,7 +216,9 @@ export default function WishlistPage() {
       <main className="scrollable-content" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
         {wishlistItems.length === 0 ? (
           <div style={{ padding: '60px 16px', textAlign: 'center', backgroundColor: '#ffffff', minHeight: '60vh' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>❤️</div>
+            <div style={{ width: '48px', height: '48px', margin: '0 auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BagIcon size={36} color="#94969f" />
+            </div>
             <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Your Wishlist is Empty</h2>
             <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px', maxWidth: '240px', margin: '6px auto 0 auto' }}>
               Save items that you like in your wishlist to review them anytime.
@@ -220,13 +241,13 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div style={{ padding: '12px 12px 24px 12px' }}>
-            {/* Collections & Out of Stock Pill Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '12px' }}>
+            {/* Collections & Out of Stock Filter Buttons (matching screenshot) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '14px' }}>
               <button 
                 onClick={() => { setSelectedCategoryFilter(null); setFilterOutOfStockOnly(false); }}
                 style={{
-                  padding: '10px',
-                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
                   border: !filterOutOfStockOnly ? '1.5px solid #ff3f6c' : '1px solid #d4d5d9',
                   backgroundColor: !filterOutOfStockOnly ? '#fff0f3' : '#ffffff',
                   color: !filterOutOfStockOnly ? '#ff3f6c' : '#282c3f',
@@ -235,19 +256,19 @@ export default function WishlistPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   cursor: 'pointer'
                 }}
               >
-                <span>📦</span>
+                <CollectionsFilterIcon size={16} color={!filterOutOfStockOnly ? '#ff3f6c' : '#282c3f'} />
                 <span>Collections</span>
               </button>
 
               <button 
                 onClick={() => setFilterOutOfStockOnly(!filterOutOfStockOnly)}
                 style={{
-                  padding: '10px',
-                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
                   border: filterOutOfStockOnly ? '1.5px solid #ff3f6c' : '1px solid #d4d5d9',
                   backgroundColor: filterOutOfStockOnly ? '#fff0f3' : '#ffffff',
                   color: filterOutOfStockOnly ? '#ff3f6c' : '#282c3f',
@@ -256,11 +277,11 @@ export default function WishlistPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   cursor: 'pointer'
                 }}
               >
-                <span>📦</span>
+                <OutOfStockBoxIcon size={16} color={filterOutOfStockOnly ? '#ff3f6c' : '#282c3f'} />
                 <span>Out of Stock</span>
               </button>
             </div>
@@ -269,10 +290,10 @@ export default function WishlistPage() {
             {categoriesPresent.length > 0 && (
               <div style={{
                 display: 'flex',
-                gap: '12px',
+                gap: '14px',
                 overflowX: 'auto',
                 paddingBottom: '8px',
-                marginBottom: '12px',
+                marginBottom: '14px',
                 scrollbarWidth: 'none'
               }}>
                 {categoriesPresent.map((cat, idx) => {
@@ -288,17 +309,18 @@ export default function WishlistPage() {
                         gap: '4px',
                         cursor: 'pointer',
                         flexShrink: 0,
-                        width: '64px'
+                        width: '60px'
                       }}
                     >
                       <div style={{
-                        width: '56px',
-                        height: '56px',
+                        width: '54px',
+                        height: '54px',
                         borderRadius: '50%',
                         overflow: 'hidden',
-                        border: isSelected ? '2px solid #ff3f6c' : '1px solid #eaeaec',
-                        padding: '2px',
-                        backgroundColor: '#ffffff'
+                        border: isSelected ? '2px solid #ff3f6c' : '1.5px solid #eaeaea',
+                        backgroundColor: '#ffffff',
+                        padding: '1px',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
                       }}>
                         <img src={cat.image} alt={cat.label} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                       </div>
@@ -310,7 +332,7 @@ export default function WishlistPage() {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: '64px'
+                        maxWidth: '60px'
                       }}>
                         {cat.label}
                       </span>
@@ -320,24 +342,32 @@ export default function WishlistPage() {
               </div>
             )}
 
-            {/* Promo Cashback Card */}
+            {/* Promo Cashback Card (matching screenshot) */}
             <div style={{
-              background: 'linear-gradient(135deg, #7b1fa2 0%, #ad1457 100%)',
+              background: 'linear-gradient(90deg, #9b1750 0%, #b8175d 50%, #d81b60 100%)',
               color: '#ffffff',
               borderRadius: '12px',
               padding: '12px 14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '14px'
+              marginBottom: '8px',
+              boxShadow: '0 2px 8px rgba(184, 23, 93, 0.25)'
             }}>
               <div>
                 <div style={{ fontSize: '13px', fontWeight: '800' }}>Get 7.5% cashback</div>
-                <div style={{ fontSize: '10px', opacity: 0.85, marginTop: '2px' }}>With Flipkart Axis Credit Card</div>
+                <div style={{ fontSize: '10px', opacity: 0.9, marginTop: '2px' }}>With Flipkart Axis Credit Card</div>
               </div>
-              <div style={{ backgroundColor: '#ffffff', color: '#7b1fa2', padding: '6px 12px', borderRadius: '16px', fontSize: '10px', fontWeight: '800' }}>
+              <div style={{ backgroundColor: '#ffffff', color: '#b8175d', padding: '6px 14px', borderRadius: '16px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}>
                 Apply Now ›
               </div>
+            </div>
+
+            {/* Pagination dots indicator */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '14px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ff3f6c' }}></span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d4d5d9' }}></span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d4d5d9' }}></span>
             </div>
 
             {/* Wishlist Product Cards Grid */}
@@ -364,13 +394,15 @@ export default function WishlistPage() {
                   }}>
                     {/* Product Image Link */}
                     <div style={{ position: 'relative', aspectRatio: '3/4', backgroundColor: '#f8f8f9', width: '100%', overflow: 'hidden' }}>
-                      <img 
-                        src={prod.image} 
-                        alt={prod.name} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isOutOfStock ? 0.75 : 1 }}
-                      />
+                      <Link href={`/p/${prod.id}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                        <img 
+                          src={prod.image} 
+                          alt={prod.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isOutOfStock ? 0.7 : 1 }}
+                        />
+                      </Link>
 
-                      {/* Out of Stock Center Banner Overlay (Fix 5) */}
+                      {/* Out of Stock Center Banner Overlay (Fix 5 - matching screenshot) */}
                       {isOutOfStock && (
                         <div style={{
                           position: 'absolute',
@@ -378,25 +410,26 @@ export default function WishlistPage() {
                           left: 0,
                           right: 0,
                           transform: 'translateY(-50%)',
-                          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                          backgroundColor: 'rgba(0, 0, 0, 0.55)',
                           color: '#ffffff',
-                          fontSize: '11px',
+                          fontSize: '10px',
                           fontWeight: '800',
                           textAlign: 'center',
                           padding: '6px 0',
-                          letterSpacing: '1px'
+                          letterSpacing: '0.8px',
+                          pointerEvents: 'none'
                         }}>
                           OUT OF STOCK
                         </div>
                       )}
 
-                      {/* Rating Overlay */}
-                      {prod.rating && (
+                      {/* Rating Overlay (In-stock only per screenshot) */}
+                      {!isOutOfStock && prod.rating && (
                         <div style={{
                           position: 'absolute',
                           bottom: '8px',
                           left: '8px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
                           padding: '2px 6px',
                           borderRadius: '10px',
                           fontSize: '10px',
@@ -404,14 +437,15 @@ export default function WishlistPage() {
                           color: '#282c3f',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '2px'
+                          gap: '3px',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
                         }}>
                           <span>{prod.rating}</span>
-                          <span style={{ color: '#03a685', fontSize: '9px' }}>★</span>
+                          <StarIcon size={9} color="#03a685" />
                         </div>
                       )}
 
-                      {/* Fix 5: Primary Button Slot (1 slot, 2 states: "Add" with bag icon vs "Similar") */}
+                      {/* Fix 5: Primary Button Slot (1 slot, 2 states: "Add" with bag icon vs "Similar" with similar icon) */}
                       <div style={{ position: 'absolute', bottom: '8px', right: '8px', zIndex: 10 }}>
                         {!isOutOfStock ? (
                           <button
@@ -421,17 +455,17 @@ export default function WishlistPage() {
                               border: '1.5px solid #ff3f6c',
                               color: '#ff3f6c',
                               borderRadius: '6px',
-                              padding: '5px 10px',
+                              padding: '4px 10px',
                               fontSize: '11px',
                               fontWeight: '800',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
                               cursor: 'pointer',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
                             }}
                           >
-                            <span>🛍️</span>
+                            <BagIcon size={12} color="#ff3f6c" strokeWidth={2.2} />
                             <span>Add</span>
                           </button>
                         ) : (
@@ -442,17 +476,17 @@ export default function WishlistPage() {
                               border: '1.5px solid #ff3f6c',
                               color: '#ff3f6c',
                               borderRadius: '6px',
-                              padding: '5px 10px',
+                              padding: '4px 10px',
                               fontSize: '11px',
                               fontWeight: '800',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
                               cursor: 'pointer',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
                             }}
                           >
-                            <span>📱</span>
+                            <SimilarCardsIcon size={12} color="#ff3f6c" strokeWidth={2.2} />
                             <span>Similar</span>
                           </button>
                         )}
@@ -469,21 +503,46 @@ export default function WishlistPage() {
                       </div>
 
                       {/* Pricing Row */}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: '800', color: '#282c3f' }}>
                           ₹{prod.salePrice || prod.price}
                         </span>
+                        {discount > 0 && (
+                          <span style={{ fontSize: '10px', color: '#ff3f6c', fontWeight: '700' }}>
+                            {discount}% OFF
+                          </span>
+                        )}
                         {prod.price && prod.salePrice && prod.price > prod.salePrice && (
                           <span style={{ fontSize: '10px', color: '#94969f', textDecoration: 'line-through' }}>
                             ₹{prod.price}
                           </span>
                         )}
-                        {discount > 0 && (
-                          <span style={{ fontSize: '10px', color: '#ff3f6c', fontWeight: '700' }}>
-                            ({discount}% OFF)
-                          </span>
-                        )}
                       </div>
+
+                      {/* Quick Check Action Button (Restored full-width entry point) */}
+                      <button
+                        onClick={() => handleTriggerQuickCheck(item)}
+                        style={{
+                          width: '100%',
+                          marginTop: '8px',
+                          backgroundColor: '#ffffff',
+                          border: '1.5px solid #ff3f6c',
+                          color: '#ff3f6c',
+                          borderRadius: '6px',
+                          padding: '7px 0',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 3px rgba(255, 63, 108, 0.08)'
+                        }}
+                      >
+                        <span style={{ fontSize: '13px' }}>👁</span>
+                        <span>Quick Check</span>
+                      </button>
                     </div>
 
                     {/* Fix 4: Exactly Three Action Icons Below Card (Delete, Move to Bag/Collection, Share) */}
@@ -491,7 +550,7 @@ export default function WishlistPage() {
                       display: 'grid',
                       gridTemplateColumns: 'repeat(3, 1fr)',
                       borderTop: '1px solid #eaeaec',
-                      backgroundColor: '#f9f9fa'
+                      backgroundColor: '#fbfbfc'
                     }}>
                       <button
                         onClick={() => handleRemoveFromWishlist(item.id)}
@@ -502,33 +561,31 @@ export default function WishlistPage() {
                           borderRight: '1px solid #eaeaec',
                           backgroundColor: 'transparent',
                           color: '#e53935',
-                          fontSize: '14px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
                       >
-                        🗑️
+                        <TrashIcon size={16} color="#e53935" strokeWidth={1.8} />
                       </button>
 
                       <button
                         onClick={() => handleMoveToBag(item)}
-                        title="Move to Bag"
+                        title="Move to Bag / Collection"
                         style={{
                           padding: '10px 0',
                           border: 'none',
                           borderRight: '1px solid #eaeaec',
                           backgroundColor: 'transparent',
                           color: '#282c3f',
-                          fontSize: '14px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
                       >
-                        ➕
+                        <CollectionPlusIcon size={16} color="#282c3f" strokeWidth={1.8} />
                       </button>
 
                       <button
@@ -539,14 +596,13 @@ export default function WishlistPage() {
                           border: 'none',
                           backgroundColor: 'transparent',
                           color: '#282c3f',
-                          fontSize: '14px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
                       >
-                        🔗
+                        <ShareIcon size={16} color="#282c3f" strokeWidth={1.8} />
                       </button>
                     </div>
                   </div>
@@ -567,3 +623,4 @@ export default function WishlistPage() {
     </div>
   );
 }
+

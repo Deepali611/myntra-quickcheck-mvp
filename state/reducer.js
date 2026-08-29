@@ -46,17 +46,26 @@ export function appReducer(state, action) {
   switch (action.type) {
     case 'TOGGLE_WISHLIST': {
       const p = action.payload || action.product;
-      const targetId = p?.id || action.productId;
+      const targetId = typeof p === 'object' && p !== null ? p.id : (p || action.productId);
       if (!targetId) return state;
 
-      const exists = state.wishlist.some(w => w.productId === targetId || w.id === targetId);
+      const rawId = String(targetId).replace(/^wish_/, '');
+
+      const exists = state.wishlist.some(w => 
+        String(w.productId).replace(/^wish_/, '') === rawId || 
+        String(w.id).replace(/^wish_/, '') === rawId
+      );
+
       if (exists) {
         return {
           ...state,
-          wishlist: state.wishlist.filter(w => w.id !== targetId && w.productId !== targetId)
+          wishlist: state.wishlist.filter(w => 
+            String(w.productId).replace(/^wish_/, '') !== rawId && 
+            String(w.id).replace(/^wish_/, '') !== rawId
+          )
         };
       } else {
-        const product = getProduct(targetId) || p;
+        const product = (typeof p === 'object' && p !== null) ? p : getProduct(rawId);
         if (!product) return state;
 
         const newItem = {

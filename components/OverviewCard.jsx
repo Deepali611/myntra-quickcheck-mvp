@@ -1,87 +1,82 @@
 'use client';
 
 import React from 'react';
+import { FitIcon, LooksIcon, WorthIcon, SparklesIcon } from './Icons.jsx';
 
 export default function OverviewCard({ product, data, selectedSize, onNavigateCheck, onAddToBag }) {
   if (!product || !data) return null;
 
   const availableChecks = data.availableChecks || ['worth'];
 
-  // Status label mapping per check
+  // Status label mapping per check computed strictly from real data
   function getCheckStatusLabel(check) {
     if (check === 'fit') {
       const currentFit = data.fit ? data.fit[selectedSize] : null;
       if (!currentFit) return `Not enough to say for ${selectedSize} yet`;
-      if (currentFit.status === 'true') return `True to size in ${selectedSize}`;
-      if (currentFit.sizeAccuracy === 'small') return `Runs small in ${selectedSize} — go size up`;
-      if (currentFit.sizeAccuracy === 'large') return `Runs large in ${selectedSize} — go size down`;
+      if (currentFit.status === 'true') {
+        return product.department === 'Footwear' ? `True to size in UK ${selectedSize}` : `True to size in ${selectedSize}`;
+      }
+      if (currentFit.headline) return currentFit.headline;
+      
+      if (product.department === 'Footwear') {
+        const isSmall = currentFit.sizeAccuracy === 'small';
+        const sev = currentFit.severity || 'a little';
+        return isSmall ? `Runs ${sev} small — go half a size up` : `Runs ${sev} large — go half a size down`;
+      }
+
       if (currentFit.top && currentFit.bottom) {
-        return `Runs ${currentFit.top.direction} on top, ${currentFit.bottom.direction} on bottom`;
+        const sev = currentFit.top.severity || 'a little';
+        return `Runs ${sev} ${currentFit.top.direction} at ${currentFit.top.zone || 'top'}, ${currentFit.bottom.direction} in ${currentFit.bottom.zone || 'bottom'}`;
       }
       if (currentFit.direction && currentFit.zone) {
-        return `Runs ${currentFit.direction} at ${currentFit.zone}`;
+        const sev = currentFit.severity || 'a little';
+        return `Runs ${sev} ${currentFit.direction} at ${currentFit.zone}`;
       }
       return `True to size in ${selectedSize}`;
     }
 
     if (check === 'looks') {
       const looks = data.looks || {};
-      if (looks.confidence === 'low' || looks.attribute === 'none') {
-        return 'Matches photos closely';
+      if (looks.headline) return looks.headline;
+      if (looks.attribute === 'none' || looks.direction === 'match') {
+        return 'Matches the photos closely';
       }
-      if (looks.attribute === 'fabric') {
-        return `Fabric reads ${looks.direction} than photos`;
-      }
-      if (looks.attribute === 'colour') {
-        return `Colour looks slightly ${looks.direction} than shown`;
-      }
-      if (looks.attribute === 'print') {
-        return `Print runs a bit ${looks.direction} than photo`;
-      }
-      if (looks.attribute === 'shade') {
-        return `Shade runs ${looks.direction} than shown`;
-      }
-      if (looks.attribute === 'material') {
-        return `Material finish reads ${looks.direction} than photos`;
-      }
-      return 'Matches photos closely';
+      return `${looks.attribute || 'Fabric'} reads ${looks.degree || 'a shade'} ${looks.direction || 'lighter'} than photos`;
     }
 
     if (check === 'worth') {
       const worth = data.worth || {};
-      return worth.headline || 'Good price for this pick';
+      return worth.headline || 'Best price we found for this style';
     }
 
     return 'Check details';
   }
 
-  // Synthesize multi-check findings into one clean sentence
+  // Synthesis line per Phase 10a rule:
+  // "only when 2+ checks apply — a single-check product skips straight to that check's own headline as the synthesis line"
   function getSynthesisLine() {
     if (availableChecks.length === 1) {
       return getCheckStatusLabel(availableChecks[0]);
     }
 
-    const parts = [];
+    const sentences = [];
     if (availableChecks.includes('fit')) {
-      const fitLabel = getCheckStatusLabel('fit');
-      parts.push(fitLabel);
+      sentences.push(getCheckStatusLabel('fit'));
     }
     if (availableChecks.includes('looks')) {
-      const looksLabel = getCheckStatusLabel('looks');
-      parts.push(looksLabel);
+      sentences.push(getCheckStatusLabel('looks'));
     }
     if (availableChecks.includes('worth')) {
-      const worthLabel = getCheckStatusLabel('worth');
-      parts.push(worthLabel);
+      sentences.push(getCheckStatusLabel('worth'));
     }
 
-    return parts.join('; ') + '.';
+    return sentences.join('. ') + '.';
   }
 
   const checkConfig = {
-    fit: { name: 'Fit Check', icon: '📏' },
-    looks: { name: 'Looks Check', icon: '👁' },
-    worth: { name: 'Worth It', icon: '💎' }
+    fit: { name: 'Fit Check', IconComponent: FitIcon },
+    looks: { name: 'Looks Check', IconComponent: LooksIcon },
+    worth: { name: 'Worth It', IconComponent: WorthIcon }
   };
 
   const hasSize = product.sizes && product.sizes.length > 0;
@@ -116,14 +111,15 @@ export default function OverviewCard({ product, data, selectedSize, onNavigateCh
       </div>
 
       {/* Section Title */}
-      <div style={{ fontSize: '12px', fontWeight: '700', color: '#94969f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: '11px', fontWeight: '700', color: '#94969f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         Quick Check Summary ({availableChecks.length} {availableChecks.length === 1 ? 'Check' : 'Checks'})
       </div>
 
       {/* Applicable Check Rows */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {availableChecks.map(checkKey => {
-          const cfg = checkConfig[checkKey] || { name: checkKey, icon: '🔍' };
+          const cfg = checkConfig[checkKey] || { name: checkKey, IconComponent: WorthIcon };
+          const Icon = cfg.IconComponent;
           const statusLabel = getCheckStatusLabel(checkKey);
 
           return (
@@ -140,11 +136,13 @@ export default function OverviewCard({ product, data, selectedSize, onNavigateCh
                 borderRadius: '12px',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s ease',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: '18px' }}>{cfg.icon}</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff0f3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={18} color="#ff3f6c" strokeWidth={2} />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', fontWeight: '700', color: '#282c3f' }}>
                     {cfg.name}
@@ -161,9 +159,10 @@ export default function OverviewCard({ product, data, selectedSize, onNavigateCh
       </div>
 
       {/* Synthesis Line Card */}
-      <div style={{ backgroundColor: '#fff0f3', border: '1px solid #ffccd5', borderRadius: '12px', padding: '12px 14px' }}>
-        <div style={{ fontSize: '10px', fontWeight: '700', color: '#ff3f6c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-          💡 Decision Synthesis
+      <div style={{ backgroundColor: '#fff0f3', border: '1px solid #ffd8e0', borderRadius: '12px', padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#ff3f6c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+          <SparklesIcon size={14} color="#ff3f6c" />
+          <span>Decision Synthesis</span>
         </div>
         <div style={{ fontSize: '12px', color: '#282c3f', lineHeight: '1.4', fontWeight: '500' }}>
           "{getSynthesisLine()}"
@@ -193,3 +192,4 @@ export default function OverviewCard({ product, data, selectedSize, onNavigateCh
     </div>
   );
 }
+

@@ -15,7 +15,9 @@ import {
   FwdIcon, 
   MnowIcon, 
   LuxeIcon,
-  ProfileIcon
+  ProfileIcon,
+  LocationPinIcon,
+  ChevronDownIcon
 } from '../../components/Icons.jsx';
 
 function ShopLayoutContent({ children }) {
@@ -33,10 +35,10 @@ function ShopLayoutContent({ children }) {
       <header className="shop-header">
         {/* Location Bar */}
         <div className="location-bar">
-          <span className="loc-icon">📍</span>
-          <span>Deliver to</span>
+          <LocationPinIcon size={14} color="#ff3f6c" />
+          <span style={{ fontWeight: '500' }}>Deliver to</span>
           <span className="loc-text">Anupam Nagar Road - Gauripada, Thane, Kalyan, 421301...</span>
-          <span className="chevron">▼</span>
+          <ChevronDownIcon size={12} color="#535766" />
         </div>
 
         {/* Primary Search Header Row: Exactly Bell, Wishlist Heart, Profile (NO Bag icon in top header!) */}

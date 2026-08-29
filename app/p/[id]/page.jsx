@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getProduct, getRelatedProducts } from '../../../lib/catalog.js';
 import { useAppStore } from '../../../state/store.jsx';
 import ProductCard from '../../../components/ProductCard.jsx';
-import { HeartIcon, BagIcon, SearchIcon } from '../../../components/Icons.jsx';
+import { HeartIcon, BagIcon, SearchIcon, BackArrowIcon } from '../../../components/Icons.jsx';
 
 export default function ProductDetailPage({ params }) {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function ProductDetailPage({ params }) {
   const id = unwrappedParams?.id;
 
   const product = getProduct(id);
-  const { state, dispatch } = useAppStore();
+  const { state, dispatch, toggleWishlist: storeToggleWishlist } = useAppStore();
 
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -25,7 +25,9 @@ export default function ProductDetailPage({ params }) {
   if (!product) {
     return (
       <div style={{ padding: '32px 16px', textAlign: 'center', backgroundColor: '#ffffff', minHeight: '100vh' }}>
-        <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛍️</div>
+        <div style={{ width: '48px', height: '48px', margin: '0 auto 8px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <BagIcon size={36} color="#94969f" />
+        </div>
         <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Product Not Found</h2>
         <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px' }}>The requested product does not exist in the catalogue.</p>
         <Link href="/" style={{ display: 'inline-block', marginTop: '16px', backgroundColor: '#ff3f6c', color: '#ffffff', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none', fontSize: '12px', fontWeight: '700' }}>
@@ -35,8 +37,10 @@ export default function ProductDetailPage({ params }) {
     );
   }
 
+  const rawId = String(product.id).replace(/^wish_/, '');
   const isWishlisted = state?.wishlist?.some(item => 
-    item.productId === product.id || item.id === product.id || item.id === `wish_${product.id}`
+    String(item.productId).replace(/^wish_/, '') === rawId || 
+    String(item.id).replace(/^wish_/, '') === rawId
   );
   const wishlistCount = state?.wishlist ? state.wishlist.length : 0;
   const bagCount = state?.bag ? state.bag.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
@@ -56,8 +60,7 @@ export default function ProductDetailPage({ params }) {
     : 0);
 
   const toggleWishlist = () => {
-    dispatch({ type: 'TOGGLE_WISHLIST', payload: product });
-    showToast(isWishlisted ? `Removed ${product.brand} from Wishlist` : `Saved ${product.brand} to Wishlist`);
+    storeToggleWishlist(product.id);
   };
 
   const handleAddToBag = () => {
@@ -121,9 +124,10 @@ export default function ProductDetailPage({ params }) {
       }}>
         <button 
           onClick={() => router.back()} 
-          style={{ border: 'none', background: 'transparent', fontSize: '20px', color: '#282c3f', cursor: 'pointer', padding: '0 4px' }}
+          style={{ border: 'none', background: 'transparent', color: '#282c3f', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+          title="Back"
         >
-          ←
+          <BackArrowIcon size={20} color="#282c3f" strokeWidth={2.2} />
         </button>
 
         <div style={{ flex: 1, fontSize: '13px', fontWeight: '700', color: '#282c3f', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

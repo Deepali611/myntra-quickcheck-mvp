@@ -7,6 +7,7 @@ import FitCheckCard from './FitCheckCard.jsx';
 import LooksCheckCard from './LooksCheckCard.jsx';
 import WorthItCard from './WorthItCard.jsx';
 import Layer4Modal from './Layer4Modal.jsx';
+import { BackArrowIcon } from './Icons.jsx';
 
 export default function QuickCheckSheet({ isOpen, onClose, product, onAddToBagSuccess }) {
   const [currentScreen, setCurrentScreen] = useState('overview'); // 'overview' | 'fit' | 'looks' | 'worth'
@@ -77,21 +78,21 @@ export default function QuickCheckSheet({ isOpen, onClose, product, onAddToBagSu
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
-                  fontSize: '18px',
                   color: '#282c3f',
                   padding: '0 4px',
-                  fontWeight: 'bold'
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
                 title="Back to Overview"
               >
-                ←
+                <BackArrowIcon size={18} color="#282c3f" strokeWidth={2.2} />
               </button>
             )}
-            <div style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>
-              {currentScreen === 'overview' && `👁 Quick Check — ${product.brand}`}
-              {currentScreen === 'fit' && `📏 Fit Check — ${product.brand}`}
-              {currentScreen === 'looks' && `👁 Looks Check — ${product.brand}`}
-              {currentScreen === 'worth' && `💎 Worth It — ${product.brand}`}
+            <div style={{ fontSize: '15px', fontWeight: '800', color: '#282c3f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+              {currentScreen === 'overview' && `Quick Check — ${product.brand}`}
+              {currentScreen === 'fit' && `Fit Check — ${product.brand}`}
+              {currentScreen === 'looks' && `Looks Check — ${product.brand}`}
+              {currentScreen === 'worth' && `Worth It — ${product.brand}`}
             </div>
           </div>
           <button 
@@ -103,9 +104,12 @@ export default function QuickCheckSheet({ isOpen, onClose, product, onAddToBagSu
               width: '28px',
               height: '28px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 'bold',
-              color: '#535766'
+              color: '#535766',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
             ✕

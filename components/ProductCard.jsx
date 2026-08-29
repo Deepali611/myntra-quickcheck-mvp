@@ -6,21 +6,20 @@ import { HeartIcon } from './Icons.jsx';
 import { useAppStore } from '../state/store.jsx';
 
 export default function ProductCard({ product, onShowToast }) {
-  const { state, dispatch } = useAppStore();
+  const { state, toggleWishlist } = useAppStore();
   
   if (!product) return null;
 
+  const rawId = String(product.id).replace(/^wish_/, '');
   const isWishlisted = state?.wishlist?.some(item => 
-    item.productId === product.id || item.id === product.id || item.id === `wish_${product.id}`
+    String(item.productId).replace(/^wish_/, '') === rawId || 
+    String(item.id).replace(/^wish_/, '') === rawId
   );
 
-  const toggleWishlist = (e) => {
+  const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: 'TOGGLE_WISHLIST', payload: product });
-    if (onShowToast) {
-      onShowToast(isWishlisted ? `Removed ${product.brand} from Wishlist` : `Saved ${product.brand} to Wishlist`);
-    }
+    toggleWishlist(product.id);
   };
 
   const discountPercent = product.discount || (product.price && product.salePrice 
@@ -73,7 +72,7 @@ export default function ProductCard({ product, onShowToast }) {
 
           {/* Wishlist Heart Toggle Overlay */}
           <button 
-            onClick={toggleWishlist}
+            onClick={handleHeartClick}
             title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
             style={{
               position: 'absolute',
