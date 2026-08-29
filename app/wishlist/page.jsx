@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAppStore } from '../../state/store.jsx';
 import { isWishlistEligible } from '../../data/seedWishlist.js';
 import { BagIcon } from '../../components/Icons.jsx';
+import QuickCheckSheet from '../../components/QuickCheckSheet.jsx';
 
 export default function WishlistPage() {
   const { state, dispatch } = useAppStore();
@@ -12,6 +13,7 @@ export default function WishlistPage() {
   const bagCount = state?.bag ? state.bag.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
 
   const [toastMessage, setToastMessage] = useState('');
+  const [activeQuickCheckProduct, setActiveQuickCheckProduct] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -38,7 +40,18 @@ export default function WishlistPage() {
 
   const handleTriggerQuickCheck = (item) => {
     const prod = item.product || item;
-    showToast(`Quick Check opened for ${prod.brand} ${prod.name}`);
+    setActiveQuickCheckProduct(prod);
+  };
+
+  const handleQuickCheckAddToBag = (product, size) => {
+    dispatch({
+      type: 'ADD_TO_BAG',
+      payload: {
+        product: product,
+        size: size || 'Standard'
+      }
+    });
+    showToast(`Added ${product.brand} (${size}) to Bag!`);
   };
 
   return (
@@ -56,7 +69,7 @@ export default function WishlistPage() {
           borderRadius: '20px',
           fontSize: '12px',
           fontWeight: '600',
-          zIndex: 1000,
+          zIndex: 2000,
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}>
           {toastMessage}
@@ -317,6 +330,14 @@ export default function WishlistPage() {
           </div>
         </div>
       )}
+
+      {/* Quick Check Bottom Sheet Portal */}
+      <QuickCheckSheet 
+        isOpen={!!activeQuickCheckProduct}
+        onClose={() => setActiveQuickCheckProduct(null)}
+        product={activeQuickCheckProduct}
+        onAddToBagSuccess={handleQuickCheckAddToBag}
+      />
     </div>
   );
 }
