@@ -2,7 +2,7 @@ import { buildSeedWishlist } from '../data/seedWishlist.js';
 import { getProduct } from '../lib/catalog.js';
 import { inferPreferredSize } from '../lib/sizing.js';
 
-export const STORAGE_KEY = 'myntra_quickcheck_state_v2';
+export const STORAGE_KEY = 'myntra_quickcheck_state_v4';
 
 // Initial state factory with safe storage fallback
 export function loadInitialState() {

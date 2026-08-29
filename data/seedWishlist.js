@@ -14,52 +14,25 @@ export function buildSeedWishlist() {
 
   if (!allProducts || allProducts.length === 0) return [];
 
-  const getProductByDept = (dept, index = 0) => {
-    const list = allProducts.filter(p => p.department === dept);
-    return list[index % list.length] || allProducts[index % allProducts.length];
-  };
-
-  // 9 Eligible items (>=3 days old, >=2 views)
-  const eligibleDepts = [
-    { dept: 'Women', index: 0, daysAgo: 7, viewCount: 4 },
-    { dept: 'Men', index: 0, daysAgo: 5, viewCount: 3 },
-    { dept: 'Kids', index: 0, daysAgo: 6, viewCount: 4 },
-    { dept: 'Footwear', index: 0, daysAgo: 8, viewCount: 5 },
-    { dept: 'Beauty', index: 0, daysAgo: 4, viewCount: 3 },     // Tier 2 Beauty
-    { dept: 'HomeLiving', index: 0, daysAgo: 9, viewCount: 6 }, // Tier 2 HomeLiving
-    { dept: 'Accessories', index: 0, daysAgo: 5, viewCount: 3 },// Tier 2 Accessories
-    { dept: 'Women', index: 1, daysAgo: 6, viewCount: 4 },
-    { dept: 'Men', index: 1, daysAgo: 4, viewCount: 3 }
-  ];
-
-  // 3 Ineligible items (<3 days old or <2 views)
-  const ineligibleDepts = [
-    { dept: 'Beauty', index: 1, daysAgo: 0, viewCount: 1 },    // Tier 2 Ineligible
-    { dept: 'Women', index: 2, daysAgo: 1, viewCount: 1 },
-    { dept: 'Footwear', index: 1, daysAgo: 0, viewCount: 1 }
+  // 8 Premier Products with authentic customer as-worn review photos
+  const curatedIds = [
+    { id: 'm_39187946', daysAgo: 7, viewCount: 4 }, // Sangria Kurta Set (8 photos)
+    { id: 'm_31472271', daysAgo: 5, viewCount: 3 }, // CAHOOT Checked Shirt (7 photos)
+    { id: 'm_40076381', daysAgo: 8, viewCount: 5 }, // LMG Wedge Pumps (5 photos)
+    { id: 'm_18744574', daysAgo: 4, viewCount: 3 }, // Aqualogica Face Serum (7 photos)
+    { id: 'm_35959915', daysAgo: 6, viewCount: 4 }, // Mast & Harbour Shoulder Bag (4 photos)
+    { id: 'm_39032685', daysAgo: 9, viewCount: 6 }, // Keitra Floral Kurta Set (11 photos)
+    { id: 'm_42005719', daysAgo: 5, viewCount: 3 }, // Roadster Striped Shirt (13 photos)
+    { id: 'm_27380480', daysAgo: 3, viewCount: 2 }  // BAESD Embellished Pumps (8 photos)
   ];
 
   const seed = [];
 
-  eligibleDepts.forEach((spec, idx) => {
-    const product = getProductByDept(spec.dept, spec.index);
+  curatedIds.forEach((spec, idx) => {
+    const product = getProduct(spec.id);
     if (product) {
       seed.push({
         id: `wish_${product.id}_${idx}`,
-        productId: product.id,
-        addedAt: new Date(now - spec.daysAgo * DAY_MS).toISOString(),
-        viewCount: spec.viewCount,
-        purchased: false,
-        product: product
-      });
-    }
-  });
-
-  ineligibleDepts.forEach((spec, idx) => {
-    const product = getProductByDept(spec.dept, spec.index);
-    if (product) {
-      seed.push({
-        id: `wish_${product.id}_inelig_${idx}`,
         productId: product.id,
         addedAt: new Date(now - spec.daysAgo * DAY_MS).toISOString(),
         viewCount: spec.viewCount,
