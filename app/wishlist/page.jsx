@@ -55,7 +55,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f6', paddingBottom: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, flex: 1, overflow: 'hidden', backgroundColor: '#f5f5f6' }}>
       {/* Toast Notification */}
       {toastMessage && (
         <div style={{
@@ -78,8 +78,7 @@ export default function WishlistPage() {
 
       {/* Wishlist Own Header (architecture.md §2) */}
       <header style={{
-        position: 'sticky',
-        top: 0,
+        flexShrink: 0,
         zIndex: 100,
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #eaeaec'
@@ -150,186 +149,188 @@ export default function WishlistPage() {
         </div>
       </header>
 
-      {/* Main Wishlist Body */}
-      {wishlistItems.length === 0 ? (
-        <div style={{ padding: '60px 16px', textAlign: 'center', backgroundColor: '#ffffff', minHeight: '60vh' }}>
-          <div style={{ fontSize: '48px', marginBottom: '12px' }}>❤️</div>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Your Wishlist is Empty</h2>
-          <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px', maxWidth: '240px', margin: '6px auto 0 auto' }}>
-            Save items that you like in your wishlist to review them anytime.
-          </p>
-          <Link href="/" style={{
-            display: 'inline-block',
-            marginTop: '20px',
-            backgroundColor: '#ffffff',
-            color: '#ff3f6c',
-            border: '1px solid #ff3f6c',
-            padding: '10px 24px',
-            borderRadius: '4px',
-            textDecoration: 'none',
-            fontSize: '12px',
-            fontWeight: '700',
-            textTransform: 'uppercase'
-          }}>
-            Continue Shopping
-          </Link>
-        </div>
-      ) : (
-        <div style={{ padding: '12px' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '12px'
-          }}>
-            {wishlistItems.map((item) => {
-              const prod = item.product || item;
-              const eligible = isWishlistEligible(item);
-              const discount = prod.discount || (prod.price && prod.salePrice ? Math.round(((prod.price - prod.salePrice) / prod.price) * 100) : 0);
+      {/* Main Wishlist Independent Scroll Body */}
+      <main className="scrollable-content" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+        {wishlistItems.length === 0 ? (
+          <div style={{ padding: '60px 16px', textAlign: 'center', backgroundColor: '#ffffff', minHeight: '60vh' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>❤️</div>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#282c3f' }}>Your Wishlist is Empty</h2>
+            <p style={{ color: '#535766', fontSize: '12px', marginTop: '4px', maxWidth: '240px', margin: '6px auto 0 auto' }}>
+              Save items that you like in your wishlist to review them anytime.
+            </p>
+            <Link href="/" style={{
+              display: 'inline-block',
+              marginTop: '20px',
+              backgroundColor: '#ffffff',
+              color: '#ff3f6c',
+              border: '1px solid #ff3f6c',
+              padding: '10px 24px',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              fontSize: '12px',
+              fontWeight: '700',
+              textTransform: 'uppercase'
+            }}>
+              Continue Shopping
+            </Link>
+          </div>
+        ) : (
+          <div style={{ padding: '12px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '12px'
+            }}>
+              {wishlistItems.map((item) => {
+                const prod = item.product || item;
+                const eligible = isWishlistEligible(item);
+                const discount = prod.discount || (prod.price && prod.salePrice ? Math.round(((prod.price - prod.salePrice) / prod.price) * 100) : 0);
 
-              return (
-                <div key={item.id} style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  border: '1px solid #eaeaec',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative'
-                }}>
-                  {/* Remove Button Cross */}
-                  <button 
-                    onClick={() => handleRemoveFromWishlist(item.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      zIndex: 10,
-                      color: '#535766',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
-                    }}
-                    title="Remove item"
-                  >
-                    ✕
-                  </button>
+                return (
+                  <div key={item.id} style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #eaeaec',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative'
+                  }}>
+                    {/* Remove Button Cross */}
+                    <button 
+                      onClick={() => handleRemoveFromWishlist(item.id)}
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        zIndex: 10,
+                        color: '#535766',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
+                      }}
+                      title="Remove item"
+                    >
+                      ✕
+                    </button>
 
-                  {/* Product Image Link */}
-                  <Link href={`/p/${prod.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ position: 'relative', aspectRatio: '3/4', backgroundColor: '#f8f8f9', width: '100%' }}>
-                      <img 
-                        src={prod.image} 
-                        alt={prod.name} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      {prod.department === 'Beauty' && (
-                        <span style={{
-                          position: 'absolute',
-                          bottom: '6px',
-                          left: '6px',
-                          backgroundColor: '#282c3f',
-                          color: '#ffffff',
-                          fontSize: '9px',
-                          fontWeight: '700',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          textTransform: 'uppercase'
-                        }}>
-                          Beauty
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Content Block */}
-                    <div style={{ padding: '10px 10px 8px 10px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#282c3f', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {prod.brand}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#535766', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
-                        {prod.name}
-                      </div>
-
-                      {/* Pricing Row */}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#282c3f' }}>
-                          ₹{prod.salePrice || prod.price}
-                        </span>
-                        {prod.price && prod.salePrice && prod.price > prod.salePrice && (
-                          <span style={{ fontSize: '10px', color: '#94969f', textDecoration: 'line-through' }}>
-                            ₹{prod.price}
-                          </span>
-                        )}
-                        {discount > 0 && (
-                          <span style={{ fontSize: '10px', color: '#ff3f6c', fontWeight: '700' }}>
-                            ({discount}% OFF)
+                    {/* Product Image Link */}
+                    <Link href={`/p/${prod.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <div style={{ position: 'relative', aspectRatio: '3/4', backgroundColor: '#f8f8f9', width: '100%' }}>
+                        <img 
+                          src={prod.image} 
+                          alt={prod.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        {prod.department === 'Beauty' && (
+                          <span style={{
+                            position: 'absolute',
+                            bottom: '6px',
+                            left: '6px',
+                            backgroundColor: '#282c3f',
+                            color: '#ffffff',
+                            fontSize: '9px',
+                            fontWeight: '700',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase'
+                          }}>
+                            Beauty
                           </span>
                         )}
                       </div>
-                    </div>
-                  </Link>
 
-                  {/* Full-Width "👁 Quick Check" Button (Eligible cards only) */}
-                  {eligible && (
-                    <div style={{ padding: '0 8px 6px 8px' }}>
+                      {/* Content Block */}
+                      <div style={{ padding: '10px 10px 8px 10px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#282c3f', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {prod.brand}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#535766', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                          {prod.name}
+                        </div>
+
+                        {/* Pricing Row */}
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '6px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: '800', color: '#282c3f' }}>
+                            ₹{prod.salePrice || prod.price}
+                          </span>
+                          {prod.price && prod.salePrice && prod.price > prod.salePrice && (
+                            <span style={{ fontSize: '10px', color: '#94969f', textDecoration: 'line-through' }}>
+                              ₹{prod.price}
+                            </span>
+                          )}
+                          {discount > 0 && (
+                            <span style={{ fontSize: '10px', color: '#ff3f6c', fontWeight: '700' }}>
+                              ({discount}% OFF)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Full-Width "👁 Quick Check" Button (Eligible cards only) */}
+                    {eligible && (
+                      <div style={{ padding: '0 8px 6px 8px' }}>
+                        <button
+                          onClick={() => handleTriggerQuickCheck(item)}
+                          style={{
+                            width: '100%',
+                            padding: '7px 0',
+                            backgroundColor: '#fff0f3',
+                            border: '1px solid #ff3f6c',
+                            borderRadius: '4px',
+                            color: '#ff3f6c',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px',
+                            cursor: 'pointer',
+                            letterSpacing: '0.2px'
+                          }}
+                        >
+                          <span style={{ fontSize: '12px' }}>👁</span>
+                          <span>Quick Check</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Move to Bag Action Button */}
+                    <div style={{ marginTop: 'auto', borderTop: '1px solid #eaeaec' }}>
                       <button
-                        onClick={() => handleTriggerQuickCheck(item)}
+                        onClick={() => handleMoveToBag(item)}
                         style={{
                           width: '100%',
-                          padding: '7px 0',
-                          backgroundColor: '#fff0f3',
-                          border: '1px solid #ff3f6c',
-                          borderRadius: '4px',
+                          padding: '9px 0',
+                          backgroundColor: '#ffffff',
+                          border: 'none',
                           color: '#ff3f6c',
-                          fontSize: '11px',
-                          fontWeight: '800',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '5px',
-                          cursor: 'pointer',
-                          letterSpacing: '0.2px'
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          textTransform: 'uppercase',
+                          cursor: 'pointer'
                         }}
                       >
-                        <span style={{ fontSize: '12px' }}>👁</span>
-                        <span>Quick Check</span>
+                        MOVE TO BAG
                       </button>
                     </div>
-                  )}
-
-                  {/* Move to Bag Action Button */}
-                  <div style={{ marginTop: 'auto', borderTop: '1px solid #eaeaec' }}>
-                    <button
-                      onClick={() => handleMoveToBag(item)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 0',
-                        backgroundColor: '#ffffff',
-                        border: 'none',
-                        color: '#ff3f6c',
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      MOVE TO BAG
-                    </button>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
 
       {/* Quick Check Bottom Sheet Portal */}
       <QuickCheckSheet 

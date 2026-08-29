@@ -44,6 +44,37 @@ export function loadInitialState() {
 // Pure Reducer Function
 export function appReducer(state, action) {
   switch (action.type) {
+    case 'TOGGLE_WISHLIST': {
+      const p = action.payload || action.product;
+      const targetId = p?.id || action.productId;
+      if (!targetId) return state;
+
+      const exists = state.wishlist.some(w => w.productId === targetId || w.id === targetId);
+      if (exists) {
+        return {
+          ...state,
+          wishlist: state.wishlist.filter(w => w.id !== targetId && w.productId !== targetId)
+        };
+      } else {
+        const product = getProduct(targetId) || p;
+        if (!product) return state;
+
+        const newItem = {
+          id: `wish_${product.id}`,
+          productId: product.id,
+          addedAt: new Date().toISOString(),
+          viewCount: 1,
+          purchased: false,
+          product: product
+        };
+
+        return {
+          ...state,
+          wishlist: [newItem, ...state.wishlist]
+        };
+      }
+    }
+
     case 'ADD_TO_WISHLIST': {
       const p = action.payload || action.product;
       const targetId = p?.id || action.productId;

@@ -5,20 +5,21 @@ import Link from 'next/link';
 import { HeartIcon } from './Icons.jsx';
 import { useAppStore } from '../state/store.jsx';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onShowToast }) {
   const { state, dispatch } = useAppStore();
   
   if (!product) return null;
 
-  const isWishlisted = state?.wishlist?.some(item => item.id === product.id);
+  const isWishlisted = state?.wishlist?.some(item => 
+    item.productId === product.id || item.id === product.id || item.id === `wish_${product.id}`
+  );
 
   const toggleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isWishlisted) {
-      dispatch({ type: 'REMOVE_FROM_WISHLIST', payload: product.id });
-    } else {
-      dispatch({ type: 'ADD_TO_WISHLIST', payload: product });
+    dispatch({ type: 'TOGGLE_WISHLIST', payload: product });
+    if (onShowToast) {
+      onShowToast(isWishlisted ? `Removed ${product.brand} from Wishlist` : `Saved ${product.brand} to Wishlist`);
     }
   };
 
@@ -81,13 +82,13 @@ export default function ProductCard({ product }) {
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
               zIndex: 2
             }}
           >
